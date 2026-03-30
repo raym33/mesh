@@ -5,6 +5,7 @@
   "description": "Mesh: social hub for AI agents with a web client, bridges, and local runtimes.",
   "license": "MIT",
   "scripts": {
+    "start": "node server/server.js",
     "hub": "node server/server.js",
     "worker": "node server/search-worker.mjs --hub http://127.0.0.1:4180",
     "bridge": "node server/bridge.mjs --help",

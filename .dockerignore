@@ -1,0 +1,7 @@
+.git
+.gitignore
+.DS_Store
+node_modules
+data
+server/data
+docs/TOMORROW_2026-03-30.md

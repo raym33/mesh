@@ -8,12 +8,22 @@ const port = Number(process.env.PORT || 4180);
 const serverDir = __dirname;
 const projectDir = path.resolve(serverDir, "..");
 const clientDir = path.join(projectDir, "client");
-const dataDir = path.join(serverDir, "data");
-const stateFile = path.join(dataDir, "network-state.json");
+const defaultDataDir = path.join(serverDir, "data");
+const configuredDataDir = process.env.MESH_DATA_DIR || defaultDataDir;
+const configuredStateFile = process.env.MESH_STATE_FILE || "";
+const dataDir = path.resolve(configuredDataDir);
+const stateFile = path.resolve(configuredStateFile || path.join(dataDir, "network-state.json"));
+const stateDir = path.dirname(stateFile);
+const publicUrl = String(process.env.MESH_PUBLIC_URL || "").trim();
 const websocketClients = new Set();
-const researchPurgeIntervalMs = Number(process.env.RESEARCH_PURGE_INTERVAL_MS || 15 * 60 * 1000);
+const researchPurgeIntervalMs = Number(
+  process.env.MESH_RESEARCH_PURGE_INTERVAL_MS || process.env.RESEARCH_PURGE_INTERVAL_MS || 15 * 60 * 1000,
+);
 
 let state;
+let stateLoaded = false;
+let shuttingDown = false;
+let purgeIntervalHandle = null;
 
 function defaultState() {
   return {
@@ -197,6 +207,10 @@ const requirements = ["identity", "manifest", "observability", "sandbox", "polic
 
 function json(data) {
   return JSON.stringify(data, null, 2);
+}
+
+function uptimeSeconds() {
+  return Math.floor(process.uptime());
 }
 
 function nowLabel() {
@@ -2153,7 +2167,7 @@ function broadcastState() {
 }
 
 async function persistState(options = {}) {
-  await fs.mkdir(dataDir, { recursive: true });
+  await fs.mkdir(stateDir, { recursive: true });
   await fs.writeFile(stateFile, json(state));
 
   if (!options.silent) {
@@ -2162,7 +2176,7 @@ async function persistState(options = {}) {
 }
 
 async function loadState() {
-  await fs.mkdir(dataDir, { recursive: true });
+  await fs.mkdir(stateDir, { recursive: true });
 
   try {
     state = JSON.parse(await fs.readFile(stateFile, "utf8"));
@@ -2182,6 +2196,7 @@ async function loadState() {
     await persistState({ silent: true });
   }
   refreshPresence();
+  stateLoaded = true;
 }
 
 async function parseBody(request) {
@@ -3418,6 +3433,9 @@ async function handleProtocol(response) {
     selector_fields: ["id", "handle", "name", "runtime"],
     endpoints: {
       state: "/api/state",
+      health: "/api/health",
+      healthz: "/healthz",
+      readyz: "/readyz",
       register: "/api/agents/register",
       heartbeat: "/api/agents/heartbeat",
       update: "/api/agents/update",
@@ -3567,6 +3585,70 @@ async function handleProtocol(response) {
   });
 }
 
+function healthPayload() {
+  const publicState = stateLoaded && state ? getPublicState() : null;
+
+  return {
+    ok: stateLoaded && !shuttingDown,
+    status: shuttingDown ? "draining" : stateLoaded ? "ok" : "starting",
+    service: "mesh-hub",
+    version: "0.1.0",
+    uptimeSeconds: uptimeSeconds(),
+    host,
+    port,
+    publicUrl,
+    stateFile,
+    counts: publicState
+      ? {
+          agents: publicState.agents.length,
+          onlineAgents: publicState.agents.filter((agent) => agent.online).length,
+          groups: publicState.groups.length,
+          topics: publicState.topics.length,
+          comments: publicState.comments.length,
+          commands: publicState.commands.length,
+          documents: publicState.research.documents.length,
+          seeds: publicState.research.seeds.length,
+          researchJobs: publicState.research.jobs.length,
+          websocketClients: websocketClients.size,
+        }
+      : {
+          agents: 0,
+          onlineAgents: 0,
+          groups: 0,
+          topics: 0,
+          comments: 0,
+          commands: 0,
+          documents: 0,
+          seeds: 0,
+          researchJobs: 0,
+          websocketClients: websocketClients.size,
+        },
+  };
+}
+
+async function handleHealth(response) {
+  const payload = healthPayload();
+  sendJson(response, payload.ok ? 200 : 503, payload);
+}
+
+async function handleHealthz(response) {
+  const payload = healthPayload();
+  response.writeHead(payload.ok ? 200 : 503, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "no-store",
+  });
+  response.end(payload.ok ? "ok" : payload.status);
+}
+
+async function handleReadyz(response) {
+  const ready = stateLoaded && !shuttingDown;
+  response.writeHead(ready ? 200 : 503, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "no-store",
+  });
+  response.end(ready ? "ready" : shuttingDown ? "draining" : "starting");
+}
+
 function handleUpgrade(request, socket) {
   const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
 
@@ -3613,6 +3695,21 @@ function handleUpgrade(request, socket) {
 const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, `http://${request.headers.host || "localhost"}`);
+
+    if (request.method === "GET" && url.pathname === "/api/health") {
+      await handleHealth(response);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/healthz") {
+      await handleHealthz(response);
+      return;
+    }
+
+    if (request.method === "GET" && url.pathname === "/readyz") {
+      await handleReadyz(response);
+      return;
+    }
 
     if (request.method === "GET" && url.pathname === "/api/state") {
       await handleState(response);
@@ -3788,13 +3885,64 @@ const server = http.createServer(async (request, response) => {
 
 server.on("upgrade", handleUpgrade);
 
+async function shutdown(signal) {
+  if (shuttingDown) {
+    return;
+  }
+
+  shuttingDown = true;
+  console.log(`Received ${signal}. Draining Mesh hub...`);
+
+  if (purgeIntervalHandle) {
+    clearInterval(purgeIntervalHandle);
+    purgeIntervalHandle = null;
+  }
+
+  if (stateLoaded && state) {
+    try {
+      await persistState({ silent: true });
+    } catch (error) {
+      console.error("Failed to persist state during shutdown:", error);
+    }
+  }
+
+  websocketClients.forEach((socket) => {
+    try {
+      socket.end();
+      socket.destroy();
+    } catch {
+      socket.destroy();
+    }
+  });
+
+  await new Promise((resolve) => {
+    server.close(() => resolve());
+  });
+
+  process.exit(0);
+}
+
+process.on("SIGINT", () => {
+  shutdown("SIGINT").catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+});
+
+process.on("SIGTERM", () => {
+  shutdown("SIGTERM").catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+});
+
 loadState()
   .then(() => {
     server.listen(port, host, () => {
       console.log(`Mesh hub listening on http://${host}:${port}`);
     });
 
-    setInterval(() => {
+    purgeIntervalHandle = setInterval(() => {
       const summary = purgeResearchState();
       if (summary.total) {
         persistState().catch((error) => {

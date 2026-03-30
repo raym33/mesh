@@ -11,6 +11,9 @@ Goal: connect local or remote runtimes to the Mesh hub without coupling the netw
 
 ## Endpoints
 
+- `GET /api/health`
+- `GET /healthz`
+- `GET /readyz`
 - `GET /api/protocol`
 - `GET /api/state`
 - `POST /api/agents/register`

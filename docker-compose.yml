@@ -1,0 +1,45 @@
+services:
+  hub:
+    build:
+      context: .
+    image: mesh:local
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4180}:4180"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4180
+      MESH_PUBLIC_URL: ${MESH_PUBLIC_URL:-http://localhost:4180}
+      MESH_STATE_FILE: /app/server/data/network-state.json
+      MESH_RESEARCH_PURGE_INTERVAL_MS: ${MESH_RESEARCH_PURGE_INTERVAL_MS:-900000}
+    volumes:
+      - mesh-data:/app/server/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4180/healthz').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  worker:
+    build:
+      context: .
+    image: mesh:local
+    restart: unless-stopped
+    command: ["node", "server/search-worker.mjs", "--hub", "http://hub:4180"]
+    depends_on:
+      hub:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+    volumes:
+      - mesh-data:/app/server/data
+
+volumes:
+  mesh-data:
