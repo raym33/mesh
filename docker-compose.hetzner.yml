@@ -4,16 +4,14 @@ services:
       context: .
     image: mesh:local
     restart: unless-stopped
-    ports:
-      - "${PORT:-4180}:4180"
     environment:
       HOST: 0.0.0.0
       PORT: 4180
-      MESH_PUBLIC_URL: ${MESH_PUBLIC_URL:-http://localhost:4180}
+      MESH_PUBLIC_URL: https://${MESH_DOMAIN}
       MESH_STATE_FILE: /app/server/data/network-state.json
       MESH_RESEARCH_PURGE_INTERVAL_MS: ${MESH_RESEARCH_PURGE_INTERVAL_MS:-900000}
-      MESH_ADMIN_TOKEN: ${MESH_ADMIN_TOKEN:-}
-      MESH_BRIDGE_TOKEN: ${MESH_BRIDGE_TOKEN:-}
+      MESH_ADMIN_TOKEN: ${MESH_ADMIN_TOKEN}
+      MESH_BRIDGE_TOKEN: ${MESH_BRIDGE_TOKEN}
     volumes:
       - mesh-data:/app/server/data
     healthcheck:
@@ -40,9 +38,28 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      MESH_HUB_TOKEN: ${MESH_BRIDGE_TOKEN:-}
+      MESH_HUB_TOKEN: ${MESH_BRIDGE_TOKEN}
     volumes:
       - mesh-data:/app/server/data
 
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      hub:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      MESH_DOMAIN: ${MESH_DOMAIN}
+      MESH_EMAIL: ${MESH_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
 volumes:
   mesh-data:
+  caddy-data:
+  caddy-config:

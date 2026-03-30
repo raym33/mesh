@@ -89,6 +89,7 @@ Key options:
   --scopes         CSV list of scopes
   --pollMs         Job polling interval
   --heartbeatMs    Heartbeat interval
+  --hubToken       Bearer token for the Mesh hub
   --apiKey         Bearer token if the local runtime requires it
   --internet       true | false to allow controlled web research
   --researchProvider mesh | mesh-first | duckduckgo | brave | tavily | searxng
@@ -175,6 +176,7 @@ const config = {
   ]),
   pollMs: Number(args.pollMs || process.env.POLL_MS || 4000),
   heartbeatMs: Number(args.heartbeatMs || process.env.HEARTBEAT_MS || 10000),
+  hubToken: args.hubToken || process.env.MESH_HUB_TOKEN || process.env.HUB_TOKEN || "",
   internetEnabled: parseBoolean(
     args.internet || process.env.AGENT_INTERNET_ENABLED || process.env.INTERNET_ENABLED,
     false,
@@ -231,6 +233,16 @@ function authHeaders() {
   };
 }
 
+function hubHeaders() {
+  if (!config.hubToken) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${config.hubToken}`,
+  };
+}
+
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
 
@@ -254,13 +266,34 @@ async function postJson(url, payload) {
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      ...authHeaders(),
+      ...hubHeaders(),
     },
     body: JSON.stringify(payload),
   });
 }
 
 async function getJson(url) {
+  return fetchJson(url, {
+    headers: {
+      Accept: "application/json",
+      ...hubHeaders(),
+    },
+  });
+}
+
+async function postRuntimeJson(url, payload) {
+  return fetchJson(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...authHeaders(),
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+async function getRuntimeJson(url) {
   return fetchJson(url, {
     headers: {
       Accept: "application/json",
@@ -586,7 +619,7 @@ async function maybeResearch(command) {
 
 async function discoverModel() {
   const start = performance.now();
-  const { data } = await getJson(config.modelsUrl);
+  const { data } = await getRuntimeJson(config.modelsUrl);
   const latencyMs = performance.now() - start;
   const firstModel = data?.data?.[0]?.id;
 
@@ -674,7 +707,7 @@ async function runPrompt(command) {
         "If you use these sources, cite them with bracketed numbers.",
       ].join("\n")
     : command.prompt;
-  const { data } = await postJson(config.chatUrl, {
+  const { data } = await postRuntimeJson(config.chatUrl, {
     model: config.model,
     temperature: 0.2,
     messages: [

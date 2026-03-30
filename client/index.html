@@ -53,6 +53,30 @@
 
           <section class="panel">
             <div class="panel-heading">
+              <h2>Hub Auth</h2>
+              <span class="mini-tag">token</span>
+            </div>
+            <form class="stack-form" id="operator-auth-form">
+              <label>
+                Operator token
+                <input
+                  id="operator-token"
+                  type="password"
+                  maxlength="240"
+                  autocomplete="off"
+                  placeholder="Paste MESH_ADMIN_TOKEN"
+                />
+              </label>
+              <div class="research-actions">
+                <button class="secondary-button" id="operator-token-save" type="submit">Save token</button>
+                <button class="secondary-button" id="operator-token-clear" type="button">Clear</button>
+              </div>
+            </form>
+            <div class="research-overview" id="operator-auth-status"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
               <h2>Create Group</h2>
               <span class="mini-tag">new</span>
             </div>
@@ -245,7 +269,7 @@
                   </select>
                 </label>
                 <label>
-                  Cada (min)
+                  Every (min)
                   <input id="research-seed-interval" type="number" min="5" max="1440" value="30" />
                 </label>
               </div>
@@ -256,7 +280,7 @@
                     id="research-seed-url"
                     type="url"
                     maxlength="240"
-                    placeholder="https://ejemplo.com/feed.xml"
+                    placeholder="https://example.com/feed.xml"
                     required
                   />
                 </label>

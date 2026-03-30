@@ -1,4 +1,5 @@
 const storageKey = "mesh-forum-state-v2";
+const operatorTokenKey = "mesh-operator-token-v1";
 
 const runtime = {
   mode: "local",
@@ -152,6 +153,7 @@ function baseForumState() {
 }
 
 let state = baseForumState();
+let operatorToken = "";
 const researchView = {
   query: "",
   results: [],
@@ -171,6 +173,10 @@ const agentAccessSummary = document.querySelector("#agent-access-summary");
 const agentAccessProfile = document.querySelector("#agent-access-profile");
 const agentAccessApply = document.querySelector("#agent-access-apply");
 const agentAccessReset = document.querySelector("#agent-access-reset");
+const operatorAuthForm = document.querySelector("#operator-auth-form");
+const operatorTokenInput = document.querySelector("#operator-token");
+const operatorTokenClear = document.querySelector("#operator-token-clear");
+const operatorAuthStatus = document.querySelector("#operator-auth-status");
 const groupSummary = document.querySelector("#group-summary");
 const groupList = document.querySelector("#group-list");
 const groupHeader = document.querySelector("#group-header");
@@ -286,7 +292,7 @@ function normalizeSources(value) {
   return Array.isArray(value)
     ? value
         .map((item) => ({
-          title: String(item?.title || item?.url || "Fuente").trim(),
+          title: String(item?.title || item?.url || "Source").trim(),
           url: String(item?.url || "").trim(),
           snippet: String(item?.snippet || "").trim(),
           source: String(item?.source || "").trim(),
@@ -307,6 +313,32 @@ function loadLocalState() {
 
 function saveLocalState() {
   localStorage.setItem(storageKey, JSON.stringify(state));
+}
+
+function loadOperatorToken() {
+  try {
+    return String(localStorage.getItem(operatorTokenKey) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function persistOperatorToken() {
+  try {
+    if (operatorToken) {
+      localStorage.setItem(operatorTokenKey, operatorToken);
+    } else {
+      localStorage.removeItem(operatorTokenKey);
+    }
+  } catch {}
+}
+
+function apiHeaders(extra = {}) {
+  return {
+    Accept: "application/json",
+    ...(operatorToken ? { Authorization: `Bearer ${operatorToken}` } : {}),
+    ...extra,
+  };
 }
 
 function ensureForumState(nextState) {
@@ -612,9 +644,7 @@ function persistState() {
 
 async function fetchApiState() {
   const response = await fetch("/api/state", {
-    headers: {
-      Accept: "application/json",
-    },
+    headers: apiHeaders(),
   });
 
   if (!response.ok) {
@@ -627,10 +657,9 @@ async function fetchApiState() {
 async function postJson(path, payload) {
   const response = await fetch(path, {
     method: "POST",
-    headers: {
+    headers: apiHeaders({
       "Content-Type": "application/json",
-      Accept: "application/json",
-    },
+    }),
     body: JSON.stringify(payload),
   });
 
@@ -639,6 +668,18 @@ async function postJson(path, payload) {
   }
 
   return response.json();
+}
+
+function renderOperatorAuth() {
+  if (operatorTokenInput) {
+    operatorTokenInput.value = operatorToken;
+  }
+
+  if (operatorAuthStatus) {
+    operatorAuthStatus.textContent = operatorToken
+      ? "Operator token stored in this browser."
+      : "No operator token stored. Public reads still work, protected writes will fail.";
+  }
 }
 
 function downloadJsonFile(name, payload) {
@@ -1436,9 +1477,7 @@ async function exportResearch(scope) {
       agentId: state.selectedAgentId || "mesh-control",
     });
     const response = await fetch(`/api/research/export?${params.toString()}`, {
-      headers: {
-        Accept: "application/json",
-      },
+      headers: apiHeaders(),
     });
 
     if (!response.ok) {
@@ -2402,6 +2441,7 @@ function renderResearch() {
 function renderAll() {
   state = normalizeState(state);
   ensureSelections(state);
+  renderOperatorAuth();
   syncAgentSelectors();
   renderTopbar();
   renderUsers();
@@ -2702,6 +2742,19 @@ async function handleResearchRetention(event) {
   });
 }
 
+function handleOperatorAuthSubmit(event) {
+  event.preventDefault();
+  operatorToken = String(operatorTokenInput?.value || "").trim();
+  persistOperatorToken();
+  renderOperatorAuth();
+}
+
+function clearOperatorAuth() {
+  operatorToken = "";
+  persistOperatorToken();
+  renderOperatorAuth();
+}
+
 function bindEvents() {
   agentAccessApply.addEventListener("click", () => {
     updateAgentSearchProfile(state.selectedAgentId, agentAccessProfile.value).catch(() => {});
@@ -2709,6 +2762,8 @@ function bindEvents() {
   agentAccessReset.addEventListener("click", () => {
     updateAgentSearchProfile(state.selectedAgentId, "").catch(() => {});
   });
+  operatorAuthForm.addEventListener("submit", handleOperatorAuthSubmit);
+  operatorTokenClear.addEventListener("click", clearOperatorAuth);
   groupForm.addEventListener("submit", handleCreateGroup);
   topicForm.addEventListener("submit", handleCreateTopic);
   commentForm.addEventListener("submit", handleCreateComment);
@@ -2747,6 +2802,7 @@ function bindEvents() {
 }
 
 async function init() {
+  operatorToken = loadOperatorToken();
   await initializeState();
   renderAll();
   bindEvents();

@@ -165,6 +165,7 @@ async function postJson(url, payload) {
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      ...hubHeaders(),
     },
     body: JSON.stringify(payload),
   });
@@ -174,6 +175,7 @@ async function getJson(url) {
   return fetchJson(url, {
     headers: {
       Accept: "application/json",
+      ...hubHeaders(),
     },
   });
 }
@@ -181,12 +183,23 @@ async function getJson(url) {
 const args = parseArgs(process.argv.slice(2));
 const config = {
   hubUrl: stripTrailingSlash(args.hub || process.env.HUB_URL || "http://127.0.0.1:4180"),
+  hubToken: args.hubToken || process.env.MESH_HUB_TOKEN || process.env.HUB_TOKEN || "",
   workerId: args.workerId || process.env.WORKER_ID || "mesh-search-worker",
   pollMs: Number(args.pollMs || process.env.POLL_MS || 4000),
   timeoutMs: Number(args.timeoutMs || process.env.TIMEOUT_MS || 15000),
   once: parseBoolean(args.once || process.env.ONCE, false),
   userAgent: args.userAgent || process.env.USER_AGENT || "MeshSearchWorker/1.0",
 };
+
+function hubHeaders() {
+  if (!config.hubToken) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${config.hubToken}`,
+  };
+}
 
 async function fetchTextResource(url, acceptHeader) {
   const controller = new AbortController();
@@ -228,7 +241,7 @@ async function fetchDocument(url) {
     !resource.contentType.includes("text/markdown") &&
     !resource.contentType.includes("application/xhtml+xml")
   ) {
-    throw new Error(`content-type no soportado: ${resource.contentType || "desconocido"}`);
+    throw new Error(`unsupported content-type: ${resource.contentType || "unknown"}`);
   }
 
   const isHtml =

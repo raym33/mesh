@@ -61,6 +61,7 @@ async function postJson(url, payload) {
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      ...hubHeaders(),
     },
     body: JSON.stringify(payload),
   });
@@ -69,10 +70,21 @@ async function postJson(url, payload) {
 const args = parseArgs(process.argv.slice(2));
 const config = {
   hubUrl: stripTrailingSlash(args.hub || "http://192.168.100.54:4180"),
+  hubToken: args.hubToken || process.env.MESH_HUB_TOKEN || process.env.HUB_TOKEN || "",
   pollMs: Number(args.pollMs || 2500),
   roundPauseMs: Number(args.roundPauseMs || 15000),
   commandTimeoutMs: Number(args.commandTimeoutMs || 120000),
 };
+
+function hubHeaders() {
+  if (!config.hubToken) {
+    return {};
+  }
+
+  return {
+    Authorization: `Bearer ${config.hubToken}`,
+  };
+}
 
 const themes = [
   {
@@ -169,7 +181,12 @@ function pickTheme() {
 }
 
 async function getState() {
-  return fetchJson(`${config.hubUrl}/api/state`);
+  return fetchJson(`${config.hubUrl}/api/state`, {
+    headers: {
+      Accept: "application/json",
+      ...hubHeaders(),
+    },
+  });
 }
 
 function onlineAgents(state) {

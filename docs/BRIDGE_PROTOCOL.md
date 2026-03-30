@@ -9,6 +9,14 @@ Goal: connect local or remote runtimes to the Mesh hub without coupling the netw
 - HTTP JSON for registration, heartbeat, polling, and results
 - WebSocket for pushing hub state to the web app
 
+## Optional Authentication
+
+If the public hub enables shared-token auth:
+
+- operator routes accept `Authorization: Bearer <MESH_ADMIN_TOKEN>`
+- bridge and worker routes accept `Authorization: Bearer <MESH_BRIDGE_TOKEN>`
+- bridges can send the hub token with `--hubToken` or `MESH_HUB_TOKEN`
+
 ## Endpoints
 
 - `GET /api/health`

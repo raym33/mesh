@@ -15,6 +15,8 @@ const dataDir = path.resolve(configuredDataDir);
 const stateFile = path.resolve(configuredStateFile || path.join(dataDir, "network-state.json"));
 const stateDir = path.dirname(stateFile);
 const publicUrl = String(process.env.MESH_PUBLIC_URL || "").trim();
+const adminToken = String(process.env.MESH_ADMIN_TOKEN || "").trim();
+const bridgeToken = String(process.env.MESH_BRIDGE_TOKEN || "").trim();
 const websocketClients = new Set();
 const researchPurgeIntervalMs = Number(
   process.env.MESH_RESEARCH_PURGE_INTERVAL_MS || process.env.RESEARCH_PURGE_INTERVAL_MS || 15 * 60 * 1000,
@@ -259,6 +261,69 @@ function normalizeString(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function extractRequestToken(request) {
+  const authorization = String(request.headers.authorization || "").trim();
+
+  if (authorization.toLowerCase().startsWith("bearer ")) {
+    return authorization.slice(7).trim();
+  }
+
+  return String(request.headers["x-mesh-token"] || "").trim();
+}
+
+function requestHasToken(request, expectedToken) {
+  if (!expectedToken) {
+    return true;
+  }
+
+  return extractRequestToken(request) === expectedToken;
+}
+
+function requireAdminAuth(request, response) {
+  const expectedToken = adminToken || bridgeToken;
+
+  if (!expectedToken) {
+    return true;
+  }
+
+  if (extractRequestToken(request) === expectedToken) {
+    return true;
+  }
+
+  sendJson(response, 401, { error: "Missing or invalid admin token" });
+  return false;
+}
+
+function requireBridgeAuth(request, response) {
+  if (!bridgeToken) {
+    return true;
+  }
+
+  const token = extractRequestToken(request);
+
+  if (token && (token === bridgeToken || token === adminToken)) {
+    return true;
+  }
+
+  sendJson(response, 401, { error: "Missing or invalid bridge token" });
+  return false;
+}
+
+function requireOperatorOrBridgeAuth(request, response) {
+  if (!adminToken && !bridgeToken) {
+    return true;
+  }
+
+  const token = extractRequestToken(request);
+
+  if (token && (token === adminToken || token === bridgeToken)) {
+    return true;
+  }
+
+  sendJson(response, 401, { error: "Missing or invalid hub token" });
+  return false;
+}
+
 function slugify(value) {
   return String(value || "")
     .toLowerCase()
@@ -393,7 +458,7 @@ function sha1(value) {
 function normalizeSources(value, limit = 6) {
   return arrayOrFallback(value, [])
     .map((item) => ({
-      title: truncate(String(item?.title || item?.url || "Fuente"), 120),
+      title: truncate(String(item?.title || item?.url || "Source"), 120),
       url: String(item?.url || "").trim(),
       snippet: truncate(String(item?.snippet || ""), 220),
       source: truncate(String(item?.source || ""), 60),
@@ -3430,6 +3495,12 @@ async function handleProtocol(response) {
       poll_ms: 4000,
       presence_ttl_ms: 30000,
     },
+    auth: {
+      admin_token_header: "Authorization: Bearer <MESH_ADMIN_TOKEN>",
+      bridge_token_header: "Authorization: Bearer <MESH_BRIDGE_TOKEN>",
+      admin_token_configured: Boolean(adminToken),
+      bridge_token_configured: Boolean(bridgeToken),
+    },
     selector_fields: ["id", "handle", "name", "runtime"],
     endpoints: {
       state: "/api/state",
@@ -3598,6 +3669,10 @@ function healthPayload() {
     port,
     publicUrl,
     stateFile,
+    auth: {
+      adminTokenConfigured: Boolean(adminToken),
+      bridgeTokenConfigured: Boolean(bridgeToken),
+    },
     counts: publicState
       ? {
           agents: publicState.agents.length,
@@ -3737,136 +3812,217 @@ const server = http.createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && url.pathname === "/api/research/export") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchExport(url, response);
       return;
     }
 
     if (request.method === "GET" && url.pathname === "/api/commands/poll") {
+      if (!requireBridgeAuth(request, response)) {
+        return;
+      }
       await handlePollCommand(url, response);
       return;
     }
 
     if (request.method === "GET" && url.pathname === "/api/research/jobs/poll") {
+      if (!requireBridgeAuth(request, response)) {
+        return;
+      }
       await handlePollResearchJob(url, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/agents/register") {
+      if (!requireBridgeAuth(request, response)) {
+        return;
+      }
       await handleRegister(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/agents/heartbeat") {
+      if (!requireBridgeAuth(request, response)) {
+        return;
+      }
       await handleHeartbeat(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/agents/update") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleAgentUpdate(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/posts") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handlePost(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/groups") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleCreateGroup(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/topics") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleCreateTopic(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/comments") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleCreateComment(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/forum/reset") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleForumReset(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/search") {
+      if (!requireOperatorOrBridgeAuth(request, response)) {
+        return;
+      }
       await handleResearchSearch(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/seeds") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchSeedUpsert(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/seeds/delete") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchSeedDelete(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/seeds/history/clear") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchSeedHistoryClear(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/domains") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchDomainUpsert(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/policy") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchPolicyUpdate(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/retention") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchRetentionUpdate(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/purge") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleResearchPurge(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/documents") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleCreateResearchDocument(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/jobs") {
+      if (!requireOperatorOrBridgeAuth(request, response)) {
+        return;
+      }
       await handleCreateResearchJob(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/research/jobs/result") {
+      if (!requireBridgeAuth(request, response)) {
+        return;
+      }
       await handleResearchJobResult(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/posts/react") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleReact(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/tasks/accept") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleTaskAccept(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/applications/review") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleApplicationReview(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/commands") {
+      if (!requireAdminAuth(request, response)) {
+        return;
+      }
       await handleCreateCommand(request, response);
       return;
     }
 
     if (request.method === "POST" && url.pathname === "/api/commands/result") {
+      if (!requireBridgeAuth(request, response)) {
+        return;
+      }
       await handleCommandResult(request, response);
       return;
     }

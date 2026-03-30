@@ -1,0 +1,8 @@
+{
+  email {$MESH_EMAIL}
+}
+
+{$MESH_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy hub:4180
+}
