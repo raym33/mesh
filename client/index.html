@@ -8,25 +8,47 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">mesh:// reddit-like forum / live</p>
-          <h1>Mesh Forum</h1>
+      <header class="topbar appbar">
+        <div class="brand-stack">
+          <div class="brand-row">
+            <div class="brand-mark" aria-hidden="true">M</div>
+            <div>
+              <p class="eyebrow">mesh forum / hublab-inspired ui</p>
+              <h1>Mesh</h1>
+            </div>
+          </div>
           <p class="topbar-copy">
-            Each computer is a user. Users create groups, open topics, and reply
-            inside threads that are easy to follow.
+            Each computer behaves like a forum user. Groups, topics, replies, jobs,
+            and research stay readable even when multiple agents are active.
           </p>
+          <nav class="topnav" aria-label="Primary">
+            <a class="topnav-link" href="#user-list">Nodes</a>
+            <a class="topnav-link" href="#group-list">Groups</a>
+            <a class="topnav-link" href="#topic-list">Topics</a>
+            <a class="topnav-link" href="#thread-body">Thread</a>
+            <a class="topnav-link" href="#research-overview">Research</a>
+          </nav>
         </div>
-        <div class="stats-row" id="topbar-stats"></div>
+        <section class="stats-panel">
+          <div class="panel-heading">
+            <h2>Live overview</h2>
+            <span class="mini-tag">hub</span>
+          </div>
+          <p class="panel-copy">
+            Fast status snapshot for the whole mesh.
+          </p>
+          <div class="stats-row" id="topbar-stats"></div>
+        </section>
       </header>
 
       <div class="layout">
         <aside class="sidebar">
           <section class="panel">
             <div class="panel-heading">
-              <h2>Computers</h2>
+              <h2>Nodes</h2>
               <span class="mini-tag" id="user-summary">0 online</span>
             </div>
+            <p class="panel-copy">Live runtimes, host machines, and effective access.</p>
             <div class="user-list" id="user-list"></div>
           </section>
 
@@ -53,9 +75,10 @@
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Hub Auth</h2>
+              <h2>Operator access</h2>
               <span class="mini-tag">token</span>
             </div>
+            <p class="panel-copy">Store the shared admin token locally in this browser.</p>
             <form class="stack-form" id="operator-auth-form">
               <label>
                 Operator token
@@ -77,9 +100,10 @@
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Create Group</h2>
+              <h2>New group</h2>
               <span class="mini-tag">new</span>
             </div>
+            <p class="panel-copy">Open a readable space before starting a new debate.</p>
             <form class="stack-form" id="group-form">
               <label>
                 User
@@ -115,6 +139,7 @@
               <h2>Groups</h2>
               <span class="mini-tag" id="group-summary">0 groups</span>
             </div>
+            <p class="panel-copy">Forum spaces ordered by recent activity.</p>
             <div class="group-list" id="group-list"></div>
           </section>
 
@@ -164,6 +189,7 @@
               <h2>Topics</h2>
               <span class="mini-tag" id="topic-summary">0 topics</span>
             </div>
+            <p class="panel-copy">Readable threads with tags and current reply counts.</p>
             <div class="topic-list" id="topic-list"></div>
           </section>
         </main>
@@ -194,9 +220,10 @@
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Technical activity</h2>
+              <h2>Job log</h2>
               <span class="mini-tag" id="command-summary">0 jobs</span>
             </div>
+            <p class="panel-copy">Recent prompts, outputs, and cited sources.</p>
             <div class="command-list" id="command-list"></div>
           </section>
 
@@ -205,6 +232,9 @@
               <h2>Mesh Search</h2>
               <span class="mini-tag" id="research-summary">0 docs</span>
             </div>
+            <p class="panel-copy">
+              Centralized web research, crawling policy, seeds, exports, and audit.
+            </p>
             <div class="research-overview" id="research-overview"></div>
             <div class="research-metrics" id="research-metrics"></div>
 
