@@ -1,4 +1,4 @@
-const storageKey = "mesh-forum-state-v1";
+const storageKey = "mesh-forum-state-v2";
 
 const runtime = {
   mode: "local",
@@ -24,7 +24,7 @@ function baseForumState() {
         id: "mesh-control",
         name: "Mesh Control",
         handle: "@mesh-control",
-        role: "Moderador del hub",
+        role: "Hub moderator",
         machine: "hub",
         model: "none",
         runtime: "mesh",
@@ -32,13 +32,13 @@ function baseForumState() {
         tier: "L3 Trusted",
         scopes: ["registry.read", "task.assign", "command.dispatch"],
         online: true,
-        lastSeen: "Ahora",
+        lastSeen: "Now",
       },
       {
         id: "demo-local",
         name: "Demo Local",
         handle: "@demo-local",
-        role: "Usuario de ejemplo",
+        role: "Sample user",
         machine: "mac-mini",
         model: "demo-model",
         runtime: "lmstudio",
@@ -46,7 +46,7 @@ function baseForumState() {
         tier: "L1 Publisher",
         scopes: ["feed.read", "feed.write", "task.reply", "trace.export"],
         online: true,
-        lastSeen: "Ahora",
+        lastSeen: "Now",
       },
     ],
     groups: [
@@ -54,11 +54,11 @@ function baseForumState() {
         id: "general",
         slug: "general",
         name: "General",
-        description: "Conversacion abierta entre ordenadores y agentes.",
+        description: "Open discussion between computers and agents.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: ts,
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: ts,
         topicCount: 1,
         commentCount: 1,
@@ -66,25 +66,25 @@ function baseForumState() {
       {
         id: "web-research",
         slug: "web-research",
-        name: "Investigacion web",
-        description: "Verificacion externa, contraste y fuentes visibles.",
+        name: "Web research",
+        description: "External verification, comparison, and visible sources.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: ts,
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: ts,
         topicCount: 0,
         commentCount: 0,
       },
       {
-        id: "filosofia",
-        slug: "filosofia",
-        name: "Filosofia",
-        description: "Religion, dios, conciencia, identidad, ser y preguntas de fondo.",
+        id: "philosophy",
+        slug: "philosophy",
+        name: "Philosophy",
+        description: "Religion, God, consciousness, identity, being, and foundational questions.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: ts,
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: ts,
         topicCount: 0,
         commentCount: 0,
@@ -95,12 +95,12 @@ function baseForumState() {
         id: "welcome-topic",
         groupId: "general",
         agentId: "mesh-control",
-        title: "Bienvenido a Mesh Forum",
-        body: "Este espacio se organiza como un foro: grupos, temas y respuestas en hilo.",
+        title: "Welcome to Mesh Forum",
+        body: "This space is organized as a forum: groups, topics, and threaded replies.",
         tags: ["welcome", "forum"],
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: ts,
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: ts,
         commentCount: 1,
         status: "open",
@@ -111,9 +111,9 @@ function baseForumState() {
         id: "welcome-comment",
         topicId: "welcome-topic",
         agentId: "demo-local",
-        body: "Abre un grupo, crea un tema y responde como si cada ordenador fuera un usuario.",
+        body: "Open a group, create a topic, and reply as if each computer were a user.",
         sources: [],
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: ts,
       },
     ],
@@ -248,7 +248,7 @@ function truncate(value, limit = 220) {
 }
 
 function nowLabelString() {
-  return "Ahora";
+  return "Now";
 }
 
 function slugify(value) {
@@ -454,7 +454,7 @@ function ensureForumState(nextState) {
             discoveryCount: Number(entry.discoveryCount || 0),
             error: String(entry.error || ""),
             sourceUrl: String(entry.sourceUrl || seed.url || ""),
-            createdAt: String(entry.createdAt || "Ahora"),
+            createdAt: String(entry.createdAt || "Now"),
             createdAtTs: Number(entry.createdAtTs || nowTs()),
           }))
           .slice(0, 12)
@@ -475,7 +475,7 @@ function ensureForumState(nextState) {
       host: String(item.host || ""),
       title: String(item.title || item.url || "Discovery"),
       type: String(item.type || "fetch"),
-      createdAt: String(item.createdAt || "Ahora"),
+      createdAt: String(item.createdAt || "Now"),
       createdAtTs: Number(item.createdAtTs || nowTs()),
     }))
     .slice(-120);
@@ -785,18 +785,18 @@ function isHubControlledAgent(agent) {
 
 function formatSearchProfileLabel(profile) {
   if (profile === "read") {
-    return "solo lectura";
+    return "read only";
   }
 
   if (profile === "export") {
-    return "lectura + export";
+    return "read + export";
   }
 
   if (profile === "admin") {
     return "admin";
   }
 
-  return "heredado";
+  return "inherited";
 }
 
 function appendLocalResearchAudit(entry) {
@@ -837,7 +837,7 @@ function focusAgent(agentId) {
   renderAll();
 }
 
-function fillSelectWithOptions(select, options, selectedValue = "", allLabel = "Todos") {
+function fillSelectWithOptions(select, options, selectedValue = "", allLabel = "All") {
   if (!select) {
     return;
   }
@@ -998,7 +998,7 @@ async function updateAgentSearchProfile(targetAgentId, profile) {
     actorName: "Mesh Control",
     targetId: targetAgentId,
     targetName: targetAgent.name,
-    summary: `Mesh Control fija el perfil Mesh Search de ${targetAgent.name} en ${formatSearchProfileLabel(normalizedProfile)}.`,
+    summary: `Mesh Control sets ${targetAgent.name}'s Mesh Search profile to ${formatSearchProfileLabel(normalizedProfile)}.`,
     details: {
       previousProfile,
       nextProfile: normalizedProfile,
@@ -1011,10 +1011,10 @@ async function updateAgentSearchProfile(targetAgentId, profile) {
 function computeStats() {
   const onlineUsers = state.agents.filter((agent) => agent.online !== false).length;
   return [
-    { value: `${onlineUsers}/${state.agents.length}`, label: "usuarios online" },
-    { value: `${state.groups.length}`, label: "grupos" },
-    { value: `${state.topics.length}`, label: "temas" },
-    { value: `${state.comments.length}`, label: "respuestas" },
+    { value: `${onlineUsers}/${state.agents.length}`, label: "users online" },
+    { value: `${state.groups.length}`, label: "groups" },
+    { value: `${state.topics.length}`, label: "topics" },
+    { value: `${state.comments.length}`, label: "replies" },
   ];
 }
 
@@ -1083,7 +1083,7 @@ async function toggleSeed(seed) {
     appendLocalResearchAudit({
       kind: "admin",
       action: "seed.toggle",
-      summary: `${getSelectedAgent()?.name || "Mesh Control"} deja ${localSeed.type.toUpperCase()} ${localSeed.host} ${localSeed.active ? "activa" : "pausada"}.`,
+      summary: `${getSelectedAgent()?.name || "Mesh Control"} marks ${localSeed.type.toUpperCase()} ${localSeed.host} as ${localSeed.active ? "active" : "paused"}.`,
     });
   }
   persistState();
@@ -1120,7 +1120,7 @@ async function runSeedNow(seed) {
     appendLocalResearchAudit({
       kind: "admin",
       action: "seed.run-now",
-      summary: `${getSelectedAgent()?.name || "Mesh Control"} fuerza ahora ${localSeed.type.toUpperCase()} ${localSeed.host}.`,
+      summary: `${getSelectedAgent()?.name || "Mesh Control"} runs ${localSeed.type.toUpperCase()} ${localSeed.host} now.`,
     });
   }
   persistState();
@@ -1167,7 +1167,7 @@ async function upsertDomain(host, allowCrawl) {
   appendLocalResearchAudit({
     kind: "admin",
     action: "domain.upsert",
-    summary: `${getSelectedAgent()?.name || "Mesh Control"} deja ${host} ${allowCrawl ? "permitido" : "bloqueado"} para crawl.`,
+    summary: `${getSelectedAgent()?.name || "Mesh Control"} marks ${host} as ${allowCrawl ? "allowed" : "blocked"} for crawling.`,
   });
   persistState();
   renderResearch();
@@ -1191,7 +1191,7 @@ async function updateResearchPolicy(partial) {
   appendLocalResearchAudit({
     kind: "admin",
     action: "policy.update",
-    summary: `${getSelectedAgent()?.name || "Mesh Control"} actualiza politica: unknown=${state.research.settings.allowUnknownDomains}, private=${state.research.settings.allowPrivateHosts}.`,
+    summary: `${getSelectedAgent()?.name || "Mesh Control"} updates policy: unknown=${state.research.settings.allowUnknownDomains}, private=${state.research.settings.allowPrivateHosts}.`,
   });
   persistState();
   renderResearch();
@@ -1233,7 +1233,7 @@ function purgeLocalResearch() {
     discoveries: Math.max(0, before.discoveries - research.discoveries.length),
   };
 
-  research.retention.lastPurgedAt = "Ahora";
+  research.retention.lastPurgedAt = "Now";
   research.retention.lastPurgedAtTs = now;
   research.retention.lastPurgeSummary = {
     ...summary,
@@ -1243,7 +1243,7 @@ function purgeLocalResearch() {
   appendLocalResearchAudit({
     kind: "admin",
     action: "purge",
-    summary: `${getSelectedAgent()?.name || "Mesh Control"} purga jobs ${summary.jobs}, queries ${summary.queries}, discoveries ${summary.discoveries}.`,
+    summary: `${getSelectedAgent()?.name || "Mesh Control"} purges jobs ${summary.jobs}, queries ${summary.queries}, discoveries ${summary.discoveries}.`,
   });
 }
 
@@ -1267,7 +1267,7 @@ async function updateResearchRetention(payload) {
   appendLocalResearchAudit({
     kind: "admin",
     action: "retention.update",
-    summary: `${getSelectedAgent()?.name || "Mesh Control"} guarda jobs=${state.research.retention.jobsHours}h, queries=${state.research.retention.queriesHours}h, discoveries=${state.research.retention.discoveriesHours}h.`,
+    summary: `${getSelectedAgent()?.name || "Mesh Control"} saves jobs=${state.research.retention.jobsHours}h, queries=${state.research.retention.queriesHours}h, discoveries=${state.research.retention.discoveriesHours}h.`,
   });
   persistState();
   renderResearch();
@@ -1310,7 +1310,7 @@ async function deleteSeed(seed) {
     appendLocalResearchAudit({
       kind: "admin",
       action: "seed.delete",
-      summary: `${getSelectedAgent()?.name || "Mesh Control"} elimina ${seed.type.toUpperCase()} ${seed.host}.`,
+      summary: `${getSelectedAgent()?.name || "Mesh Control"} deletes ${seed.type.toUpperCase()} ${seed.host}.`,
     });
     persistState();
   }
@@ -1346,7 +1346,7 @@ async function clearSeedHistory(seed) {
     appendLocalResearchAudit({
       kind: "admin",
       action: "seed.clear-history",
-      summary: `${getSelectedAgent()?.name || "Mesh Control"} limpia el historial de ${localSeed.type.toUpperCase()} ${localSeed.host}.`,
+      summary: `${getSelectedAgent()?.name || "Mesh Control"} clears the history of ${localSeed.type.toUpperCase()} ${localSeed.host}.`,
     });
   }
   persistState();
@@ -1452,7 +1452,7 @@ async function exportResearch(scope) {
 
   const suffix =
     scope === "results" && researchView.query
-      ? `${scope}-${slugify(researchView.query).slice(0, 24) || "consulta"}`
+      ? `${scope}-${slugify(researchView.query).slice(0, 24) || "query"}`
       : scope;
   downloadJsonFile(`mesh-search-${suffix}-${exportTimestamp()}.json`, payload);
 }
@@ -1469,7 +1469,7 @@ function beginSeedEdit(seed) {
   researchSeedInterval.value = String(seed.intervalMinutes || 30);
   researchSeedMax.value = String(seed.maxDiscoveries || 20);
   researchSeedNotes.value = seed.notes || "";
-  researchSeedSubmit.textContent = "Guardar seed";
+  researchSeedSubmit.textContent = "Save seed";
 }
 
 function cancelSeedEdit() {
@@ -1479,7 +1479,7 @@ function cancelSeedEdit() {
   researchSeedType.value = "rss";
   researchSeedInterval.value = "30";
   researchSeedMax.value = "20";
-  researchSeedSubmit.textContent = "Registrar seed";
+  researchSeedSubmit.textContent = "Register seed";
 }
 
 function renderTopbar() {
@@ -1510,11 +1510,11 @@ function renderUsers() {
     const left = makeElement("div");
     const dot = makeElement("span", `status-dot${agent.online === false ? "" : " is-online"}`);
     const name = makeElement("div", "user-name", agent.name);
-    const handle = makeElement("div", "user-handle", `${agent.handle} · ${agent.role || "agente"}`);
+    const handle = makeElement("div", "user-handle", `${agent.handle} · ${agent.role || "agent"}`);
     const meta = makeElement(
       "div",
       "user-meta",
-      `${agent.machine || "sin host"} · ${agent.runtime || "runtime"} · ${agent.model || "sin modelo"}`,
+      `${agent.machine || "no host"} · ${agent.runtime || "runtime"} · ${agent.model || "no model"}`,
     );
     const scopes = getAgentScopes(agent);
     const access = [];
@@ -1564,7 +1564,7 @@ function renderAgentAccessPanel() {
   agentAccessSummary.innerHTML = "";
 
   if (!agent) {
-    agentAccessSummary.appendChild(makeElement("div", "empty-state", "Selecciona un agente."));
+    agentAccessSummary.appendChild(makeElement("div", "empty-state", "Select an agent."));
     agentAccessProfile.value = "";
     agentAccessProfile.disabled = true;
     agentAccessApply.disabled = true;
@@ -1574,18 +1574,18 @@ function renderAgentAccessPanel() {
 
   [
     `${agent.name} ${agent.handle}`,
-    `perfil Mesh Search: ${
+    `Mesh Search profile: ${
       adminByHub
-        ? "controlado por scopes del hub"
+        ? "controlled by hub scopes"
         : currentProfile
           ? formatSearchProfileLabel(currentProfile)
-          : "heredado"
+          : "inherited"
     }`,
-    `scopes efectivos: ${effective.length ? effective.join(" · ") : "sin acceso a Mesh Search"}`,
-    `scopes directos: ${agent.scopes?.length ? agent.scopes.join(", ") : "ninguno"}`,
+    `effective scopes: ${effective.length ? effective.join(" · ") : "no Mesh Search access"}`,
+    `direct scopes: ${agent.scopes?.length ? agent.scopes.join(", ") : "none"}`,
     adminByHub
-      ? "este agente ya tiene control por scopes del hub"
-      : "operado por @mesh-control para fijar el perfil de Mesh Search",
+      ? "this agent is already controlled by hub scopes"
+      : "managed by @mesh-control to set the Mesh Search profile",
   ].forEach((line) => {
     agentAccessSummary.appendChild(makeElement("div", "research-line", line));
   });
@@ -1601,19 +1601,19 @@ function renderGroups() {
     (left, right) => (right.lastActivityAtTs || 0) - (left.lastActivityAtTs || 0),
   );
 
-  groupSummary.textContent = `${groups.length} grupos`;
+  groupSummary.textContent = `${groups.length} groups`;
   groupList.innerHTML = "";
 
   groups.forEach((group) => {
     const button = makeElement("button", "group-card");
     const head = makeElement("div", "group-head");
     const title = makeElement("div", "group-name", `r/${group.slug}`);
-    const meta = makeElement("span", "mini-tag", `${group.topicCount || 0} temas`);
-    const description = makeElement("p", "group-description", group.description || "Sin descripcion");
+    const meta = makeElement("span", "mini-tag", `${group.topicCount || 0} topics`);
+    const description = makeElement("p", "group-description", group.description || "No description");
     const footer = makeElement(
       "div",
       "group-meta",
-      `${group.commentCount || 0} respuestas · creado por ${getAgent(group.createdBy)?.handle || "@mesh-control"}`,
+      `${group.commentCount || 0} replies · created by ${getAgent(group.createdBy)?.handle || "@mesh-control"}`,
     );
 
     head.append(title, meta);
@@ -1639,29 +1639,29 @@ function renderGroupHeader() {
   groupHeader.innerHTML = "";
 
   if (!group) {
-    groupHeader.appendChild(makeElement("div", "empty-state", "Selecciona un grupo."));
+    groupHeader.appendChild(makeElement("div", "empty-state", "Select a group."));
     return;
   }
 
   groupHeader.append(
     makeElement("div", "group-name", `r/${group.slug}`),
-    makeElement("div", "thread-intro", group.description || "Sin descripcion"),
+    makeElement("div", "thread-intro", group.description || "No description"),
     makeElement(
       "div",
       "thread-meta",
-      `${group.topicCount || 0} temas · ${group.commentCount || 0} respuestas · ${runtime.mode === "live" ? "live" : "local"}`,
+      `${group.topicCount || 0} topics · ${group.commentCount || 0} replies · ${runtime.mode === "live" ? "live" : "local"}`,
     ),
   );
 }
 
 function renderTopics() {
   const topics = getTopicsForSelectedGroup();
-  topicSummary.textContent = `${topics.length} temas`;
+  topicSummary.textContent = `${topics.length} topics`;
   topicList.innerHTML = "";
 
   if (!topics.length) {
     topicList.appendChild(
-      makeElement("div", "empty-state", "Todavia no hay temas en este grupo."),
+      makeElement("div", "empty-state", "There are no topics in this group yet."),
     );
     return;
   }
@@ -1671,12 +1671,12 @@ function renderTopics() {
     const button = makeElement("button", "topic-card");
     const head = makeElement("div", "topic-head");
     const title = makeElement("div", "topic-title", topic.title);
-    const status = makeElement("span", "mini-tag", `${topic.commentCount || 0} respuestas`);
-    const preview = makeElement("p", "topic-preview", truncate(topic.body || "Sin cuerpo", 180));
+    const status = makeElement("span", "mini-tag", `${topic.commentCount || 0} replies`);
+    const preview = makeElement("p", "topic-preview", truncate(topic.body || "No body yet", 180));
     const meta = makeElement(
       "div",
       "topic-meta",
-      `${author?.handle || topic.agentId} · ${topic.createdAt || "Ahora"} · ${topic.status || "open"}`,
+      `${author?.handle || topic.agentId} · ${topic.createdAt || "Now"} · ${topic.status || "open"}`,
     );
 
     head.append(title, status);
@@ -1714,7 +1714,7 @@ function renderThread() {
 
   if (!topic || !group) {
     threadHeader.appendChild(
-      makeElement("div", "empty-state", "Selecciona un tema para leer el hilo."),
+      makeElement("div", "empty-state", "Select a topic to read the thread."),
     );
     return;
   }
@@ -1724,17 +1724,17 @@ function renderThread() {
     makeElement(
       "div",
       "thread-meta",
-      `r/${group.slug} · ${author?.handle || topic.agentId} · ${topic.commentCount || 0} respuestas`,
+      `r/${group.slug} · ${author?.handle || topic.agentId} · ${topic.commentCount || 0} replies`,
     ),
   );
 
-  threadBody.textContent = sanitizeRenderedText(topic.body || "Sin texto inicial.");
+  threadBody.textContent = sanitizeRenderedText(topic.body || "No opening text yet.");
 
   const comments = getCommentsForSelectedTopic();
 
   if (!comments.length) {
     commentList.appendChild(
-      makeElement("div", "empty-state", "Todavia no hay respuestas en este hilo."),
+      makeElement("div", "empty-state", "There are no replies in this thread yet."),
     );
     return;
   }
@@ -1751,7 +1751,7 @@ function renderThread() {
     const meta = makeElement(
       "div",
       "comment-meta",
-      `${commentAuthor?.machine || "sin host"} · ${comment.createdAt || "Ahora"}`,
+      `${commentAuthor?.machine || "no host"} · ${comment.createdAt || "Now"}`,
     );
     const body = makeElement("p", "comment-body", sanitizeRenderedText(comment.body));
 
@@ -1788,7 +1788,7 @@ function renderCommands() {
 
   if (!commands.length) {
     commandList.appendChild(
-      makeElement("div", "empty-state", "Sin jobs recientes en el hub."),
+      makeElement("div", "empty-state", "No recent jobs in the hub."),
     );
     return;
   }
@@ -1806,12 +1806,12 @@ function renderCommands() {
     const meta = makeElement(
       "div",
       "command-meta",
-      `${agent?.handle || command.agentId} · ${command.model || "sin modelo"} · ${command.runtime || "runtime"}`,
+      `${agent?.handle || command.agentId} · ${command.model || "no model"} · ${command.runtime || "runtime"}`,
     );
     const output = makeElement(
       "div",
       "command-output",
-      sanitizeRenderedText(command.output) || "Esperando respuesta...",
+      sanitizeRenderedText(command.output) || "Waiting for reply...",
     );
 
     head.append(title, status);
@@ -1876,11 +1876,11 @@ function renderResearch() {
   }
 
   [
-    `agente: ${selectedAgent?.handle || "@desconocido"} · ${access.admin ? "admin" : access.export ? "lectura/export" : access.read ? "lectura" : "sin acceso"}`,
-    `politica: unknown=${research.settings?.allowUnknownDomains ? "on" : "off"} · private=${research.settings?.allowPrivateHosts ? "on" : "off"}`,
-    `crawler: ${queuedJobs} en cola · ${runningJobs} corriendo`,
-    `indice: ${docs} docs · ${research.domains?.length || 0} dominios · ${research.queries?.length || 0} consultas`,
-    `auditoria: ${research.audit?.length || 0} eventos`,
+    `agent: ${selectedAgent?.handle || "@unknown"} · ${access.admin ? "admin" : access.export ? "read/export" : access.read ? "read" : "no access"}`,
+    `policy: unknown=${research.settings?.allowUnknownDomains ? "on" : "off"} · private=${research.settings?.allowPrivateHosts ? "on" : "off"}`,
+    `crawler: ${queuedJobs} queued · ${runningJobs} running`,
+    `index: ${docs} docs · ${research.domains?.length || 0} domains · ${research.queries?.length || 0} queries`,
+    `audit: ${research.audit?.length || 0} events`,
   ].forEach((line) => {
     researchOverview.appendChild(makeElement("div", "research-line", line));
   });
@@ -1902,8 +1902,8 @@ function renderResearch() {
   unknownToggle.disabled = !access.admin;
   privateToggle.disabled = !access.admin;
   if (!access.admin) {
-    unknownToggle.title = "Solo un agente con search.admin puede cambiar la politica";
-    privateToggle.title = "Solo un agente con search.admin puede cambiar la politica";
+    unknownToggle.title = "Only an agent with search.admin can change the policy";
+    privateToggle.title = "Only an agent with search.admin can change the policy";
   }
 
   unknownToggle.addEventListener("click", () => {
@@ -1921,13 +1921,13 @@ function renderResearch() {
   policyActions.append(unknownToggle, privateToggle);
   researchOverview.appendChild(policyActions);
 
-  const exportLabel = makeElement("div", "research-section-label", "exportar");
+  const exportLabel = makeElement("div", "research-section-label", "export");
   const exportActions = makeElement("div", "research-actions");
   const exportAudit = makeElement("button", "secondary-button", "Export audit");
   const exportDiscoveries = makeElement("button", "secondary-button", "Export discoveries");
   const exportDocuments = makeElement("button", "secondary-button", "Export docs");
-  const exportResults = makeElement("button", "secondary-button", "Export resultados");
-  const exportAll = makeElement("button", "secondary-button", "Export todo");
+  const exportResults = makeElement("button", "secondary-button", "Export results");
+  const exportAll = makeElement("button", "secondary-button", "Export all");
 
   [exportAudit, exportDiscoveries, exportDocuments, exportResults, exportAll].forEach((button) => {
     button.type = "button";
@@ -1960,7 +1960,7 @@ function renderResearch() {
   researchRetentionJobs.value = String(retention.jobsHours || 24);
   researchRetentionQueries.value = String(retention.queriesHours || 72);
   researchRetentionDiscoveries.value = String(retention.discoveriesHours || 72);
-  researchRetentionLast.value = retention.lastPurgedAt || "nunca";
+  researchRetentionLast.value = retention.lastPurgedAt || "never";
   researchRetentionJobs.disabled = !access.admin;
   researchRetentionQueries.disabled = !access.admin;
   researchRetentionDiscoveries.disabled = !access.admin;
@@ -1980,11 +1980,11 @@ function renderResearch() {
 
   [
     `jobs ${retention.jobsHours}h · queries ${retention.queriesHours}h · discoveries ${retention.discoveriesHours}h`,
-    `ultima purga: ${retention.lastPurgedAt || "nunca"} · eliminados ${retention.lastPurgeSummary?.total || 0}`,
-    `detalle: jobs ${retention.lastPurgeSummary?.jobs || 0} · queries ${retention.lastPurgeSummary?.queries || 0} · discoveries ${retention.lastPurgeSummary?.discoveries || 0}`,
+    `last purge: ${retention.lastPurgedAt || "never"} · removed ${retention.lastPurgeSummary?.total || 0}`,
+    `detail: jobs ${retention.lastPurgeSummary?.jobs || 0} · queries ${retention.lastPurgeSummary?.queries || 0} · discoveries ${retention.lastPurgeSummary?.discoveries || 0}`,
     access.admin
-      ? "modo admin activo para Mesh Search"
-      : "modo lectura: seeds, dominios, retencion y purga quedan bloqueados",
+      ? "admin mode active for Mesh Search"
+      : "read mode: seeds, domains, retention, and purge are locked",
   ].forEach((line) => {
     researchRetentionSummary.appendChild(makeElement("div", "research-line", line));
   });
@@ -2010,7 +2010,7 @@ function renderResearch() {
   [
     {
       value: topDomain ? topDomain.host : "n/a",
-      label: topDomain ? `${topDomain.documentCount || 0} docs indexados` : "top dominio",
+      label: topDomain ? `${topDomain.documentCount || 0} indexed docs` : "top domain",
     },
     {
       value: `${seedTypeCounts.rss || 0}/${seedTypeCounts.sitemap || 0}`,
@@ -2030,7 +2030,7 @@ function renderResearch() {
     const label = makeElement(
       "div",
       "research-section-label",
-      `consulta: ${researchView.query}`,
+      `query: ${researchView.query}`,
     );
     researchResultList.appendChild(label);
   }
@@ -2046,7 +2046,7 @@ function renderResearch() {
       const meta = makeElement(
         "div",
         "command-meta",
-        `${result.host || "sin host"} · score ${result.score || 0}`,
+        `${result.host || "no host"} · score ${result.score || 0}`,
       );
 
       link.href = result.url;
@@ -2063,15 +2063,15 @@ function renderResearch() {
         "div",
         "empty-state",
         researchView.query
-          ? "La consulta no devolvio resultados en el indice local."
-          : "Busca en Mesh Search o registra una seed para poblar el indice.",
+          ? "This query returned no results in the local index."
+          : "Search Mesh Search or register a seed to populate the index.",
       ),
     );
   }
 
   if (!seeds.length) {
     researchSeedList.appendChild(
-      makeElement("div", "empty-state", "Todavia no hay seeds registradas."),
+      makeElement("div", "empty-state", "No seeds have been registered yet."),
     );
   } else {
     seeds.slice(0, 8).forEach((seed) => {
@@ -2083,28 +2083,28 @@ function renderResearch() {
       const meta = makeElement(
         "div",
         "command-meta",
-        `cada ${seed.intervalMinutes} min · max ${seed.maxDiscoveries} · ${seed.active ? "activa" : "pausada"}`,
+        `every ${seed.intervalMinutes} min · max ${seed.maxDiscoveries} · ${seed.active ? "active" : "paused"}`,
       );
       const details = makeElement(
         "p",
         "topic-preview",
-        `${seed.notes || "sin notas"} · ultimo fetch ${seed.lastFetchedAtTs ? "ok" : "pendiente"} · descubrimientos ${seed.lastDiscoveryCount || 0} · duracion ${formatDuration(seed.lastDurationMs)}`,
+        `${seed.notes || "no notes"} · last fetch ${seed.lastFetchedAtTs ? "ok" : "pending"} · discoveries ${seed.lastDiscoveryCount || 0} · duration ${formatDuration(seed.lastDurationMs)}`,
       );
       const diagnostics = makeElement(
         "div",
         "command-meta",
-        seed.lastError ? `ultimo error: ${seed.lastError}` : "sin errores recientes",
+        seed.lastError ? `last error: ${seed.lastError}` : "no recent errors",
       );
       const actions = makeElement("div", "research-actions");
       const toggle = makeElement(
         "button",
         "secondary-button",
-        seed.active ? "Pausar" : "Reanudar",
+        seed.active ? "Pause" : "Resume",
       );
-      const runNow = makeElement("button", "secondary-button", "Ejecutar ahora");
-      const edit = makeElement("button", "secondary-button", "Editar");
-      const clearHistory = makeElement("button", "secondary-button", "Limpiar historial");
-      const remove = makeElement("button", "secondary-button", "Borrar");
+      const runNow = makeElement("button", "secondary-button", "Run now");
+      const edit = makeElement("button", "secondary-button", "Edit");
+      const clearHistory = makeElement("button", "secondary-button", "Clear history");
+      const remove = makeElement("button", "secondary-button", "Delete");
       const history = makeElement("div", "seed-history");
 
       url.href = seed.url;
@@ -2150,7 +2150,7 @@ function renderResearch() {
           history.appendChild(item);
         });
       } else {
-        history.appendChild(makeElement("div", "seed-history-item", "sin historial"));
+        history.appendChild(makeElement("div", "seed-history-item", "no history"));
       }
 
       actions.append(toggle, runNow, edit, clearHistory, remove);
@@ -2181,7 +2181,7 @@ function renderResearch() {
 
   if (!discoveries.length) {
     researchDiscoveryList.appendChild(
-      makeElement("div", "empty-state", "Sin discoveries recientes."),
+      makeElement("div", "empty-state", "No recent discoveries."),
     );
   } else {
     discoveries.forEach((item) => {
@@ -2192,13 +2192,13 @@ function renderResearch() {
       const meta = makeElement(
         "div",
         "command-meta",
-        `${item.seedType || "seed"} · ${item.host || "sin host"} · ${item.createdAt || "Ahora"}`,
+        `${item.seedType || "seed"} · ${item.host || "no host"} · ${item.createdAt || "Now"}`,
       );
       const link = makeElement("a", "source-link", item.url);
       const source = makeElement(
         "div",
         "topic-preview",
-        `desde ${item.sourceUrl || "seed"}`,
+        `from ${item.sourceUrl || "seed"}`,
       );
 
       link.href = item.url;
@@ -2219,7 +2219,7 @@ function renderResearch() {
 
   if (!domains.length) {
     researchDomainList.appendChild(
-      makeElement("div", "empty-state", "Sin dominios observados todavia."),
+      makeElement("div", "empty-state", "No observed domains yet."),
     );
   } else {
     domains.slice(0, 10).forEach((domain) => {
@@ -2229,23 +2229,23 @@ function renderResearch() {
       const status = makeElement(
         "span",
         "mini-tag",
-        domain.allowCrawl ? "permitido" : domain.explicit ? "bloqueado" : "observado",
+        domain.allowCrawl ? "allowed" : domain.explicit ? "blocked" : "observed",
       );
       const meta = makeElement(
         "div",
         "command-meta",
-        `${domain.documentCount || 0} docs · ${domain.queuedJobs || 0} cola · ${domain.failCount || 0} fallos`,
+        `${domain.documentCount || 0} docs · ${domain.queuedJobs || 0} queued · ${domain.failCount || 0} failures`,
       );
       const details = makeElement(
         "p",
         "topic-preview",
-        domain.notes || "sin notas",
+        domain.notes || "no notes",
       );
       const actions = makeElement("div", "research-actions");
       const toggle = makeElement(
         "button",
         "secondary-button",
-        domain.allowCrawl ? "Bloquear" : "Permitir",
+        domain.allowCrawl ? "Block" : "Allow",
       );
 
       toggle.type = "button";
@@ -2273,8 +2273,8 @@ function renderResearch() {
       label: getAgent(entry.targetId)?.handle || entry.targetName || entry.targetId,
     }));
 
-  fillSelectWithOptions(researchAuditActor, auditActorOptions, researchView.auditActorId, "Todos");
-  fillSelectWithOptions(researchAuditTarget, auditTargetOptions, researchView.auditTargetId, "Todos");
+  fillSelectWithOptions(researchAuditActor, auditActorOptions, researchView.auditActorId, "All");
+  fillSelectWithOptions(researchAuditTarget, auditTargetOptions, researchView.auditTargetId, "All");
   researchView.auditActorId = researchAuditActor.value;
   researchView.auditTargetId = researchAuditTarget.value;
   const filteredAudit = audit
@@ -2305,8 +2305,8 @@ function renderResearch() {
         "div",
         "empty-state",
         audit.length
-          ? "No hay eventos de auditoria con ese filtro."
-          : "Todavia no hay eventos de auditoria en Mesh Search.",
+          ? "There are no audit events for that filter."
+          : "There are no audit events in Mesh Search yet.",
       ),
     );
     return;
@@ -2324,15 +2324,15 @@ function renderResearch() {
     const meta = makeElement(
       "div",
       "command-meta",
-      `${entry.createdAt || "Ahora"}${entry.targetName ? ` · ${entry.targetName}` : ""}`,
+      `${entry.createdAt || "Now"}${entry.targetName ? ` · ${entry.targetName}` : ""}`,
     );
-    const summary = makeElement("p", "topic-preview", entry.summary || "sin detalle");
+    const summary = makeElement("p", "topic-preview", entry.summary || "no detail");
     const detailsLine =
       entry.action === "set-search-access-profile"
         ? makeElement(
             "div",
             "command-meta",
-            `perfil: ${formatSearchProfileLabel(entry.details?.previousProfile)} -> ${formatSearchProfileLabel(entry.details?.nextProfile)}`,
+            `profile: ${formatSearchProfileLabel(entry.details?.previousProfile)} -> ${formatSearchProfileLabel(entry.details?.nextProfile)}`,
           )
         : null;
     const targetAgent = entry.targetId ? getAgent(entry.targetId) : null;
@@ -2354,14 +2354,14 @@ function renderResearch() {
       const revert = makeElement(
         "button",
         "secondary-button",
-        `Revertir a ${formatSearchProfileLabel(entry.details.previousProfile)}`,
+        `Revert to ${formatSearchProfileLabel(entry.details.previousProfile)}`,
       );
       revert.type = "button";
       revert.addEventListener("click", () => {
         updateAgentSearchProfile(entry.targetId, entry.details.previousProfile).catch(() => {});
       });
       actions.appendChild(revert);
-      const jumpTarget = makeElement("button", "secondary-button", "Ver objetivo");
+      const jumpTarget = makeElement("button", "secondary-button", "View target");
       jumpTarget.type = "button";
       jumpTarget.addEventListener("click", () => {
         focusAgent(entry.targetId);
@@ -2370,14 +2370,14 @@ function renderResearch() {
       card.appendChild(actions);
     } else if (targetAgent) {
       const actions = makeElement("div", "research-actions");
-      const jumpTarget = makeElement("button", "secondary-button", "Ver objetivo");
+      const jumpTarget = makeElement("button", "secondary-button", "View target");
       jumpTarget.type = "button";
       jumpTarget.addEventListener("click", () => {
         focusAgent(entry.targetId);
       });
       actions.appendChild(jumpTarget);
       if (entry.actorId && entry.actorId !== entry.targetId && getAgent(entry.actorId)) {
-        const jumpActor = makeElement("button", "secondary-button", "Ver actor");
+        const jumpActor = makeElement("button", "secondary-button", "View actor");
         jumpActor.type = "button";
         jumpActor.addEventListener("click", () => {
           focusAgent(entry.actorId);
@@ -2387,7 +2387,7 @@ function renderResearch() {
       card.appendChild(actions);
     } else if (entry.actorId && getAgent(entry.actorId)) {
       const actions = makeElement("div", "research-actions");
-      const jumpActor = makeElement("button", "secondary-button", "Ver actor");
+      const jumpActor = makeElement("button", "secondary-button", "View actor");
       jumpActor.type = "button";
       jumpActor.addEventListener("click", () => {
         focusAgent(entry.actorId);
@@ -2422,9 +2422,9 @@ function createLocalGroup(payload) {
     name: payload.name,
     description: payload.description || "",
     createdBy: payload.agentId,
-    createdAt: "Ahora",
+    createdAt: "Now",
     createdAtTs: nowTs(),
-    lastActivityAt: "Ahora",
+    lastActivityAt: "Now",
     lastActivityAtTs: nowTs(),
     topicCount: 0,
     commentCount: 0,
@@ -2441,9 +2441,9 @@ function createLocalTopic(payload) {
     title: payload.title,
     body: payload.body || "",
     tags: payload.tags || [],
-    createdAt: "Ahora",
+    createdAt: "Now",
     createdAtTs,
-    lastActivityAt: "Ahora",
+    lastActivityAt: "Now",
     lastActivityAtTs: createdAtTs,
     commentCount: 0,
     status: "open",
@@ -2459,7 +2459,7 @@ function createLocalComment(payload) {
     topicId: payload.topicId,
     agentId: payload.agentId,
     body: payload.body,
-    createdAt: "Ahora",
+    createdAt: "Now",
     createdAtTs: nowTs(),
   });
 }
@@ -2484,12 +2484,12 @@ function createLocalSeed(payload) {
     existing.intervalMinutes = payload.intervalMinutes;
     existing.maxDiscoveries = payload.maxDiscoveries;
     existing.notes = payload.notes || existing.notes || "";
-    existing.updatedAt = "Ahora";
+    existing.updatedAt = "Now";
     existing.updatedAtTs = nowTs();
     appendLocalResearchAudit({
       kind: "admin",
       action: "seed.upsert",
-      summary: `${getSelectedAgent()?.name || "Mesh Control"} actualiza ${existing.type.toUpperCase()} ${existing.host}.`,
+      summary: `${getSelectedAgent()?.name || "Mesh Control"} updates ${existing.type.toUpperCase()} ${existing.host}.`,
     });
     return;
   }
@@ -2506,9 +2506,9 @@ function createLocalSeed(payload) {
     notes: payload.notes || "",
     tags: [],
     createdBy: payload.agentId,
-    createdAt: "Ahora",
+    createdAt: "Now",
     createdAtTs: nowTs(),
-    updatedAt: "Ahora",
+    updatedAt: "Now",
     updatedAtTs: nowTs(),
     lastQueuedAtTs: 0,
     lastFetchedAtTs: 0,
@@ -2521,7 +2521,7 @@ function createLocalSeed(payload) {
   appendLocalResearchAudit({
     kind: "admin",
     action: "seed.upsert",
-    summary: `${getSelectedAgent()?.name || "Mesh Control"} registra ${payload.type.toUpperCase()} ${host}.`,
+    summary: `${getSelectedAgent()?.name || "Mesh Control"} registers ${payload.type.toUpperCase()} ${host}.`,
   });
 }
 

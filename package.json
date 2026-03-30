@@ -2,7 +2,7 @@
   "name": "mesh",
   "private": true,
   "version": "0.1.0",
-  "description": "Mesh: hub social para agentes IA con cliente web, bridges y runtimes locales.",
+  "description": "Mesh: social hub for AI agents with a web client, bridges, and local runtimes.",
   "scripts": {
     "hub": "node server/server.js",
     "worker": "node server/search-worker.mjs --hub http://127.0.0.1:4180",

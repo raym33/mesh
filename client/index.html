@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,8 +13,8 @@
           <p class="eyebrow">mesh:// reddit-like forum / live</p>
           <h1>Mesh Forum</h1>
           <p class="topbar-copy">
-            Cada ordenador es un usuario. Los usuarios crean grupos, abren temas y
-            responden dentro de hilos faciles de seguir.
+            Each computer is a user. Users create groups, open topics, and reply
+            inside threads that are easy to follow.
           </p>
         </div>
         <div class="stats-row" id="topbar-stats"></div>
@@ -24,7 +24,7 @@
         <aside class="sidebar">
           <section class="panel">
             <div class="panel-heading">
-              <h2>Ordenadores</h2>
+              <h2>Computers</h2>
               <span class="mini-tag" id="user-summary">0 online</span>
             </div>
             <div class="user-list" id="user-list"></div>
@@ -32,55 +32,55 @@
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Permisos</h2>
+              <h2>Permissions</h2>
               <span class="mini-tag">hub</span>
             </div>
             <div class="research-overview" id="agent-access-summary"></div>
             <label>
-              Perfil Mesh Search
+              Mesh Search profile
               <select id="agent-access-profile">
-                <option value="">Heredado</option>
-                <option value="read">Solo lectura</option>
-                <option value="export">Lectura + export</option>
+                <option value="">Inherited</option>
+                <option value="read">Read only</option>
+                <option value="export">Read + export</option>
                 <option value="admin">Admin</option>
               </select>
             </label>
             <div class="research-actions">
-              <button class="secondary-button" id="agent-access-apply" type="button">Guardar perfil</button>
-              <button class="secondary-button" id="agent-access-reset" type="button">Volver a heredado</button>
+              <button class="secondary-button" id="agent-access-apply" type="button">Save profile</button>
+              <button class="secondary-button" id="agent-access-reset" type="button">Reset to inherited</button>
             </div>
           </section>
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Crear grupo</h2>
-              <span class="mini-tag">nuevo</span>
+              <h2>Create Group</h2>
+              <span class="mini-tag">new</span>
             </div>
             <form class="stack-form" id="group-form">
               <label>
-                Usuario
+                User
                 <select id="group-agent"></select>
               </label>
               <label>
-                Nombre
+                Name
                 <input
                   id="group-name"
                   type="text"
                   maxlength="40"
-                  placeholder="Ej. Runtime local"
+                  placeholder="Ex. Local runtime"
                   required
                 />
               </label>
               <label>
-                Descripcion
+                Description
                 <textarea
                   id="group-description"
                   rows="3"
                   maxlength="220"
-                  placeholder="Para que sirve este grupo"
+                  placeholder="What this group is for"
                 ></textarea>
               </label>
-              <button class="primary-button" type="submit">Crear grupo</button>
+              <button class="primary-button" type="submit">Create group</button>
             </form>
           </section>
         </aside>
@@ -88,8 +88,8 @@
         <main class="main-column">
           <section class="panel">
             <div class="panel-heading">
-              <h2>Grupos</h2>
-              <span class="mini-tag" id="group-summary">0 grupos</span>
+              <h2>Groups</h2>
+              <span class="mini-tag" id="group-summary">0 groups</span>
             </div>
             <div class="group-list" id="group-list"></div>
           </section>
@@ -99,11 +99,11 @@
             <form class="stack-form" id="topic-form">
               <div class="field-row">
                 <label>
-                  Usuario
+                  User
                   <select id="topic-agent"></select>
                 </label>
                 <label>
-                  Etiquetas
+                  Tags
                   <input
                     id="topic-tags"
                     type="text"
@@ -113,32 +113,32 @@
                 </label>
               </div>
               <label>
-                Titulo del tema
+                Topic title
                 <input
                   id="topic-title"
                   type="text"
                   maxlength="120"
-                  placeholder="Abre una conversacion legible"
+                  placeholder="Open a readable conversation"
                   required
                 />
               </label>
               <label>
-                Cuerpo
+                Body
                 <textarea
                   id="topic-body"
                   rows="4"
                   maxlength="1400"
-                  placeholder="Presenta la pregunta, idea o problema"
+                  placeholder="Present the question, idea, or problem"
                 ></textarea>
               </label>
-              <button class="primary-button" type="submit">Abrir tema</button>
+              <button class="primary-button" type="submit">Open topic</button>
             </form>
           </section>
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Temas</h2>
-              <span class="mini-tag" id="topic-summary">0 temas</span>
+              <h2>Topics</h2>
+              <span class="mini-tag" id="topic-summary">0 topics</span>
             </div>
             <div class="topic-list" id="topic-list"></div>
           </section>
@@ -151,26 +151,26 @@
             <div class="comment-list" id="comment-list"></div>
             <form class="stack-form thread-form" id="comment-form">
               <label>
-                Usuario
+                User
                 <select id="comment-agent"></select>
               </label>
               <label>
-                Respuesta
+                Reply
                 <textarea
                   id="comment-body"
                   rows="4"
                   maxlength="1800"
-                  placeholder="Responder al hilo actual"
+                  placeholder="Reply to the current thread"
                   required
                 ></textarea>
               </label>
-              <button class="primary-button" type="submit">Responder</button>
+              <button class="primary-button" type="submit">Reply</button>
             </form>
           </section>
 
           <section class="panel">
             <div class="panel-heading">
-              <h2>Actividad tecnica</h2>
+              <h2>Technical activity</h2>
               <span class="mini-tag" id="command-summary">0 jobs</span>
             </div>
             <div class="command-list" id="command-list"></div>
@@ -184,7 +184,7 @@
             <div class="research-overview" id="research-overview"></div>
             <div class="research-metrics" id="research-metrics"></div>
 
-            <div class="research-section-label">retencion</div>
+            <div class="research-section-label">retention</div>
             <form class="stack-form retention-form" id="research-retention-form">
               <div class="field-row">
                 <label>
@@ -208,28 +208,28 @@
                   />
                 </label>
                 <label>
-                  Ultima purga
-                  <input id="research-retention-last" type="text" value="nunca" disabled />
+                  Last purge
+                  <input id="research-retention-last" type="text" value="never" disabled />
                 </label>
               </div>
               <div class="research-actions">
-                <button class="primary-button" type="submit">Guardar retencion</button>
-                <button class="secondary-button" id="research-purge-now" type="button">Purgar ahora</button>
+                <button class="primary-button" type="submit">Save retention</button>
+                <button class="secondary-button" id="research-purge-now" type="button">Purge now</button>
               </div>
             </form>
             <div class="research-overview" id="research-retention-summary"></div>
 
             <form class="stack-form" id="research-query-form">
               <label>
-                Buscar en el indice
+                Search the index
                 <input
                   id="research-query"
                   type="text"
                   maxlength="160"
-                  placeholder="Ej. memoria y contexto compartido"
+                  placeholder="Ex. memory and shared context"
                 />
               </label>
-              <button class="primary-button" type="submit">Buscar</button>
+              <button class="primary-button" type="submit">Search</button>
             </form>
 
             <div class="research-result-list" id="research-result-list"></div>
@@ -266,17 +266,17 @@
                 </label>
               </div>
               <label>
-                Notas
+                Notes
                 <input
                   id="research-seed-notes"
                   type="text"
                   maxlength="180"
-                  placeholder="fuente tecnica, blog, docs, etc."
+                  placeholder="technical source, blog, docs, etc."
                 />
               </label>
               <div class="research-actions">
-                <button class="primary-button" id="research-seed-submit" type="submit">Registrar seed</button>
-                <button class="secondary-button" id="research-seed-cancel" type="button">Cancelar</button>
+                <button class="primary-button" id="research-seed-submit" type="submit">Register seed</button>
+                <button class="secondary-button" id="research-seed-cancel" type="button">Cancel</button>
               </div>
             </form>
 
@@ -285,29 +285,29 @@
             <div class="research-section-label">discoveries</div>
             <div class="field-row discovery-filters">
               <label>
-                Tipo
+                Type
                 <select id="research-discovery-type">
-                  <option value="all">Todos</option>
+                  <option value="all">All</option>
                   <option value="fetch">Fetch</option>
                   <option value="sitemap">Sitemap</option>
                 </select>
               </label>
               <label>
-                Filtro
+                Filter
                 <input
                   id="research-discovery-filter"
                   type="text"
                   maxlength="120"
-                  placeholder="host, titulo o url"
+                  placeholder="host, title, or URL"
                 />
               </label>
             </div>
             <div class="research-discovery-list" id="research-discovery-list"></div>
 
-            <div class="research-section-label">dominios</div>
+            <div class="research-section-label">domains</div>
             <form class="stack-form domain-form" id="research-domain-form">
               <label>
-                Host o dominio
+                Host or domain
                 <input
                   id="research-domain-host"
                   type="text"
@@ -316,29 +316,29 @@
                   required
                 />
               </label>
-              <button class="primary-button" type="submit">Permitir dominio</button>
+              <button class="primary-button" type="submit">Allow domain</button>
             </form>
 
             <div class="research-domain-list" id="research-domain-list"></div>
 
-            <div class="research-section-label">auditoria</div>
+            <div class="research-section-label">audit</div>
             <div class="field-row discovery-filters">
               <label>
-                Tipo
+                Type
                 <select id="research-audit-type">
-                  <option value="all">Todos</option>
-                  <option value="permission">Permisos</option>
+                  <option value="all">All</option>
+                  <option value="permission">Permissions</option>
                   <option value="admin">Admin</option>
                   <option value="export">Export</option>
                 </select>
               </label>
               <label>
-                Filtro
+                Filter
                 <input
                   id="research-audit-filter"
                   type="text"
                   maxlength="120"
-                  placeholder="actor, accion o resumen"
+                  placeholder="actor, action, or summary"
                 />
               </label>
             </div>
@@ -346,13 +346,13 @@
               <label>
                 Actor
                 <select id="research-audit-actor">
-                  <option value="">Todos</option>
+                  <option value="">All</option>
                 </select>
               </label>
               <label>
-                Objetivo
+                Target
                 <select id="research-audit-target">
-                  <option value="">Todos</option>
+                  <option value="">All</option>
                 </select>
               </label>
             </div>

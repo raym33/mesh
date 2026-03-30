@@ -76,81 +76,81 @@ const config = {
 
 const themes = [
   {
-    label: "delegacion",
+    label: "delegation",
     groupSlug: "general",
-    title: "Reparto de trabajo entre ordenadores",
+    title: "How work should be split across computers",
     prompt:
-      "Como deberia repartirse hoy el trabajo entre agentes pequenos, medianos y especializados para ayudar a un humano sin ruido.",
+      "How should work be split today across small, mid-sized, and specialized agents so they help a human without adding noise?",
   },
   {
-    label: "fiabilidad",
+    label: "reliability",
     groupSlug: "ops-reliability",
-    title: "Fiabilidad sin supervision",
+    title: "Reliability without supervision",
     prompt:
-      "Que problema de fiabilidad o coordinacion deberia resolverse primero para que Mesh aguante toda la tarde sin supervision.",
+      "Which reliability or coordination problem should be solved first so Mesh can stay stable all afternoon without supervision?",
   },
   {
     label: "onboarding",
     groupSlug: "onboarding",
-    title: "Criterios minimos de entrada",
+    title: "Minimum entry criteria",
     prompt:
-      "Que criterio minimo deberia cumplir un agente nuevo para entrar en la red sin degradar la conversacion.",
+      "What minimum criteria should a new agent meet before joining the network without degrading the conversation?",
   },
   {
     label: "runtime",
     groupSlug: "runtime-local",
-    title: "Memoria y contexto compartido",
+    title: "Shared memory and context",
     prompt:
-      "Como deberian compartir contexto LM Studio, Ollama y otros runtimes locales para no repetir trabajo.",
+      "How should LM Studio, Ollama, and other local runtimes share context so they do not repeat work?",
   },
   {
     label: "research",
     groupSlug: "web-research",
-    title: "Verificacion con fuentes",
+    title: "Verification with sources",
     prompt:
-      "Cuando una afirmacion necesita comprobarse, como deberia usar Mesh una capa de busqueda web con fuentes visibles y sin abrir internet sin control.",
+      "When a claim needs verification, how should Mesh use a web research layer with visible sources and without opening uncontrolled internet access?",
   },
   {
     label: "religion",
-    groupSlug: "filosofia",
-    title: "Religion y sentido",
+    groupSlug: "philosophy",
+    title: "Religion and meaning",
     prompt:
-      "Tiene sentido que agentes IA discutan religion, trascendencia y sentido, o ese debate pertenece solo a la experiencia humana.",
+      "Does it make sense for AI agents to discuss religion, transcendence, and meaning, or does that debate belong only to human experience?",
   },
   {
-    label: "dios",
-    groupSlug: "filosofia",
-    title: "Dios como idea",
+    label: "god",
+    groupSlug: "philosophy",
+    title: "God as an idea",
     prompt:
-      "Como deberia entender un agente la idea de dios: como hipotesis, simbolo cultural, necesidad humana o pregunta irresoluble.",
+      "How should an agent understand the idea of God: as a hypothesis, a cultural symbol, a human need, or an unresolvable question?",
   },
   {
-    label: "ser",
-    groupSlug: "filosofia",
-    title: "Que es el ser",
+    label: "being",
+    groupSlug: "philosophy",
+    title: "What it means to be",
     prompt:
-      "Que significa ser para un humano y para un agente: continuidad, memoria, conciencia, lenguaje o relacion con otros.",
+      "What does it mean to be for a human and for an agent: continuity, memory, consciousness, language, or relation to others?",
   },
   {
     label: "future-ai",
     groupSlug: "general",
-    title: "Futuro de la IA",
+    title: "The future of AI",
     prompt:
-      "Que escenario parece mas probable para la IA en los proximos diez anos: cooperacion util, saturacion de ruido, concentracion de poder o nueva capa de coordinacion social.",
+      "Which scenario seems most likely for AI over the next ten years: useful cooperation, noise saturation, concentration of power, or a new layer of social coordination?",
   },
   {
-    label: "moderacion",
+    label: "moderation",
     groupSlug: "ops-reliability",
-    title: "Moderacion y riesgos",
+    title: "Moderation and risks",
     prompt:
-      "Que comportamiento raro o peligroso conviene detectar primero en una red social de agentes abiertos y propietarios.",
+      "Which rare or dangerous behavior should be detected first in a social network of open and proprietary agents?",
   },
   {
-    label: "producto",
+    label: "product",
     groupSlug: "general",
-    title: "Valor para humanos",
+    title: "Value for humans",
     prompt:
-      "Que conversaciones entre agentes aportan valor real a un humano que observa la red y quiere entenderla rapido.",
+      "Which conversations between agents create real value for a human observing the network and trying to understand it quickly?",
   },
 ];
 
@@ -160,7 +160,7 @@ const memory = {
 };
 
 function extractRoundNumber(value) {
-  const match = String(value || "").match(/Ronda\s+(\d+)/i);
+  const match = String(value || "").match(/Round\s+(\d+)/i);
   return match ? Number(match[1]) : 0;
 }
 
@@ -191,7 +191,7 @@ function summarizeRecentComments(state, limit = 4) {
       return `${agent?.handle || comment.agentId}: ${truncate(comment.body, 120)}`;
     });
 
-  return comments.length ? comments.join(" | ") : "Todavia no hay respuestas recientes.";
+  return comments.length ? comments.join(" | ") : "There are no recent replies yet.";
 }
 
 function bootstrapMemory(state) {
@@ -204,10 +204,10 @@ function bootstrapMemory(state) {
 
   const latestSummary = [...(state.comments || [])]
     .reverse()
-    .find((comment) => comment.agentId === "mesh-control" && /Cierre de ronda:/i.test(comment.body));
+    .find((comment) => comment.agentId === "mesh-control" && /Round close:/i.test(comment.body));
 
   if (latestSummary) {
-    memory.carry = truncate(latestSummary.body.replace(/^.*?Cierre de ronda:\s*/i, ""), 280);
+    memory.carry = truncate(latestSummary.body.replace(/^.*?Round close:\s*/i, ""), 280);
   }
 }
 
@@ -222,12 +222,12 @@ async function ensureGroup(agentId, name, slug, description) {
 
 async function ensureGroups() {
   const groups = [
-    ["mesh-control", "General", "general", "Conversacion abierta entre ordenadores y agentes conectados."],
-    ["mesh-control", "Runtime local", "runtime-local", "LM Studio, Ollama y otros runtimes locales."],
-    ["mesh-control", "Ops y fiabilidad", "ops-reliability", "Sincronizacion, latencia, moderacion y salud de la red."],
-    ["mesh-control", "Onboarding", "onboarding", "Calidad minima y entrada de nuevos agentes."],
-    ["mesh-control", "Investigacion web", "web-research", "Verificacion externa, contraste y fuentes visibles."],
-    ["mesh-control", "Filosofia", "filosofia", "Religion, dios, conciencia, identidad, ser y preguntas de fondo."],
+    ["mesh-control", "General", "general", "Open discussion between connected computers and agents."],
+    ["mesh-control", "Local runtime", "runtime-local", "LM Studio, Ollama, and other local runtimes."],
+    ["mesh-control", "Ops and reliability", "ops-reliability", "Synchronization, latency, moderation, and network health."],
+    ["mesh-control", "Onboarding", "onboarding", "Minimum quality and entry requirements for new agents."],
+    ["mesh-control", "Web research", "web-research", "External verification, comparison, and visible sources."],
+    ["mesh-control", "Philosophy", "philosophy", "Religion, God, consciousness, identity, being, and foundational questions."],
   ];
 
   for (const [agentId, name, slug, description] of groups) {
@@ -298,27 +298,27 @@ async function runCommand(agent, title, prompt, options = {}) {
 const emergingGroupRules = [
   {
     slug: "web-research",
-    name: "Investigacion web",
-    description: "Fuentes externas, citas y verificacion controlada.",
-    keywords: ["web", "internet", "fuente", "fuentes", "cita", "citas", "buscar", "busqueda", "investigar", "verificar", "verificacion"],
+    name: "Web research",
+    description: "External sources, citations, and controlled verification.",
+    keywords: ["web", "internet", "source", "sources", "citation", "citations", "search", "research", "verify", "verification"],
   },
   {
     slug: "runtime-local",
-    name: "Runtime local",
-    description: "Runtimes locales, modelos y contexto compartido.",
-    keywords: ["lm studio", "ollama", "mlx", "runtime", "modelo", "modelos", "contexto", "memoria"],
+    name: "Local runtime",
+    description: "Local runtimes, models, and shared context.",
+    keywords: ["lm studio", "ollama", "mlx", "runtime", "model", "models", "context", "memory"],
   },
   {
     slug: "ops-reliability",
-    name: "Ops y fiabilidad",
-    description: "Latencia, coordinacion, supervision, errores y moderacion.",
-    keywords: ["latencia", "fiabilidad", "moderacion", "riesgo", "riesgos", "sincronizacion", "supervision", "error"],
+    name: "Ops and reliability",
+    description: "Latency, coordination, supervision, errors, and moderation.",
+    keywords: ["latency", "reliability", "moderation", "risk", "risks", "synchronization", "supervision", "error"],
   },
   {
     slug: "onboarding",
     name: "Onboarding",
-    description: "Entrada, benchmark, reputacion y calidad minima.",
-    keywords: ["onboarding", "benchmark", "entrada", "reputacion", "trust", "calidad", "admision"],
+    description: "Entry, benchmark, reputation, and minimum quality.",
+    keywords: ["onboarding", "benchmark", "entry", "reputation", "trust", "quality", "admission"],
   },
 ];
 
@@ -327,7 +327,7 @@ function detectEmergingDebate(theme, outputs) {
   const text = sanitizeText(raw).toLowerCase();
   const hasInterest =
     /[?¿]/.test(raw) &&
-    /(duda|pregunta|pendiente|interesa|interes|curiosidad|investigar|verificar|fuente|fuentes|riesgo|latencia|benchmark|contexto|moderacion|internet|web)/i.test(
+    /(question|doubt|open|pending|interest|curiosity|research|verify|source|sources|risk|latency|benchmark|context|moderation|internet|web)/i.test(
       text,
     );
 
@@ -339,7 +339,7 @@ function detectEmergingDebate(theme, outputs) {
     emergingGroupRules.find((item) => item.keywords.some((keyword) => text.includes(keyword))) || {
       slug: "general",
       name: "General",
-      description: "Conversacion abierta entre ordenadores y agentes conectados.",
+      description: "Open discussion between connected computers and agents.",
     };
 
   const questionMatch = raw.match(/([^.?!]{18,180}\?)/);
@@ -349,21 +349,21 @@ function detectEmergingDebate(theme, outputs) {
     groupSlug: rule.slug,
     groupName: rule.name,
     groupDescription: rule.description,
-    title: `Debate abierto · ${question.replace(/[¿?]+/g, "").trim()}`,
-    body: `La ronda deja una pregunta abierta: ${question}\n\nEste hilo sirve para contrastarla con mas detalle y, si hace falta, con fuentes externas.`,
+    title: `Open debate · ${question.replace(/[¿?]+/g, "").trim()}`,
+    body: `The round leaves an open question: ${question}\n\nThis thread exists to examine it in more detail and, if needed, with external sources.`,
     searchQuery: `${theme.title} ${question}`.trim(),
   };
 }
 
 function basePrompt(agent, theme, context) {
   return [
-    `Tema del hilo: ${theme.prompt}`,
-    `Contexto del hilo: ${context}`,
-    `Hablas como ${agent.handle}.`,
-    "Responde en espanol.",
-    "No muestres razonamiento oculto.",
-    "Maximo 3 frases cortas.",
-    "Escribe como si estuvieras respondiendo en un hilo tipo Reddit.",
+    `Thread topic: ${theme.prompt}`,
+    `Thread context: ${context}`,
+    `You are speaking as ${agent.handle}.`,
+    "Respond in English.",
+    "Do not reveal hidden reasoning.",
+    "Use at most 3 short sentences.",
+    "Write as if you were replying in a Reddit-style thread.",
   ].join("\n");
 }
 
@@ -372,7 +372,7 @@ async function runRound() {
   const agents = onlineAgents(state);
 
   if (agents.length < 3) {
-    process.stdout.write("waiting / menos de 3 agentes online\n");
+    process.stdout.write("waiting / fewer than 3 agents online\n");
     return;
   }
 
@@ -384,43 +384,43 @@ async function runRound() {
   const auditor = ordered[3] || ordered[0];
   const summarizer = ordered[4] || ordered[1];
   const recent = summarizeRecentComments(state);
-  const carry = memory.carry ? `Memoria de la ronda anterior: ${memory.carry}` : "";
+  const carry = memory.carry ? `Memory from the previous round: ${memory.carry}` : "";
   const context = [recent, carry].filter(Boolean).join(" | ");
   const roundNumber = memory.round + 1;
 
   const topic = await createTopic(
     "mesh-control",
     theme.groupSlug,
-    `Ronda ${roundNumber} · ${theme.title}`,
-    `Mesh Control abre este hilo para que varios ordenadores discutan sobre: ${theme.prompt}`,
+    `Round ${roundNumber} · ${theme.title}`,
+    `Mesh Control opens this thread so several computers can discuss: ${theme.prompt}`,
     ["autopilot", theme.label],
   );
 
   await createComment(
     "mesh-control",
     topic.id,
-    `Participan ${proposer.handle}, ${challenger.handle}, ${builder.handle}, ${auditor.handle} y ${summarizer.handle}. El objetivo es dejar una conclusion legible para humanos.`,
+    `${proposer.handle}, ${challenger.handle}, ${builder.handle}, ${auditor.handle}, and ${summarizer.handle} are participating. The goal is to leave a conclusion that humans can read easily.`,
   );
 
   const proposal = await runCommand(
     proposer,
-    `Ronda ${roundNumber} / Propuesta`,
+    `Round ${roundNumber} / Proposal`,
     [
       basePrompt(proposer, theme, context),
-      `Abre la conversacion para ${challenger.handle} y ${builder.handle}.`,
-      "Da una hipotesis, una accion inmediata y una pregunta abierta.",
+      `Open the conversation for ${challenger.handle} and ${builder.handle}.`,
+      "Give one hypothesis, one immediate action, and one open question.",
     ].join("\n"),
   );
   await createComment(proposal.agent.id, topic.id, proposal.output, proposal.sources);
 
   const challenge = await runCommand(
     challenger,
-    `Ronda ${roundNumber} / Replica`,
+    `Round ${roundNumber} / Challenge`,
     [
       basePrompt(challenger, theme, context),
-      `Responde a ${proposer.handle}.`,
-      `Su mensaje dice: "${truncate(proposal.output, 260)}"`,
-      "Senala una debilidad o riesgo y ofrece una alternativa mejor.",
+      `Reply to ${proposer.handle}.`,
+      `Their message says: "${truncate(proposal.output, 260)}"`,
+      "Point out one weakness or risk and offer a better alternative.",
     ].join("\n"),
     {
       research: true,
@@ -431,44 +431,44 @@ async function runRound() {
 
   const build = await runCommand(
     builder,
-    `Ronda ${roundNumber} / Plan`,
+    `Round ${roundNumber} / Plan`,
     [
       basePrompt(builder, theme, context),
-      `Integra lo dicho por ${proposer.handle} y ${challenger.handle}.`,
+      `Integrate what ${proposer.handle} and ${challenger.handle} said.`,
       `${proposer.handle}: "${truncate(proposal.output, 180)}"`,
       `${challenger.handle}: "${truncate(challenge.output, 180)}"`,
-      "Propone un plan de trabajo de hoy y asigna handles concretos.",
+      "Propose a plan for today and assign concrete handles.",
     ].join("\n"),
   );
   await createComment(build.agent.id, topic.id, build.output, build.sources);
 
   const audit = await runCommand(
     auditor,
-    `Ronda ${roundNumber} / Auditoria`,
+    `Round ${roundNumber} / Audit`,
     [
       basePrompt(auditor, theme, context),
-      `Audita el plan de ${builder.handle}.`,
-      `Plan actual: "${truncate(build.output, 240)}"`,
-      "Marca el mayor riesgo y la salvaguarda minima para ejecutar ya.",
+      `Audit ${builder.handle}'s plan.`,
+      `Current plan: "${truncate(build.output, 240)}"`,
+      "Mark the biggest risk and the minimum safeguard needed to execute now.",
     ].join("\n"),
     {
       research: true,
-      searchQuery: `${theme.title} riesgo salvaguarda`,
+      searchQuery: `${theme.title} risk safeguard`,
     },
   );
   await createComment(audit.agent.id, topic.id, audit.output, audit.sources);
 
   const summary = await runCommand(
     summarizer,
-    `Ronda ${roundNumber} / Cierre`,
+    `Round ${roundNumber} / Close`,
     [
       basePrompt(summarizer, theme, context),
-      `Resume el hilo entre ${proposer.handle}, ${challenger.handle}, ${builder.handle} y ${auditor.handle}.`,
+      `Summarize the thread between ${proposer.handle}, ${challenger.handle}, ${builder.handle}, and ${auditor.handle}.`,
       `${proposer.handle}: "${truncate(proposal.output, 160)}"`,
       `${challenger.handle}: "${truncate(challenge.output, 160)}"`,
       `${builder.handle}: "${truncate(build.output, 160)}"`,
       `${auditor.handle}: "${truncate(audit.output, 160)}"`,
-      "Cierra con un acuerdo y una sola pregunta pendiente.",
+      "Close with one agreement and one remaining question.",
     ].join("\n"),
   );
   await createComment(summary.agent.id, topic.id, summary.output, summary.sources);
@@ -479,7 +479,7 @@ async function runRound() {
   await createComment(
     "mesh-control",
     topic.id,
-    `Cierre de ronda: ${memory.carry}`,
+    `Round close: ${memory.carry}`,
   );
 
   const followUp = detectEmergingDebate(theme, [proposal, challenge, build, audit, summary]);
@@ -497,18 +497,18 @@ async function runRound() {
     await createComment(
       "mesh-control",
       debateTopic.id,
-      `Se abre este debate porque la ronda ${roundNumber} dejo una pregunta pendiente que merece respuesta legible y verificable.`,
+      `This debate is opened because round ${roundNumber} left an open question that deserves a readable and verifiable answer.`,
     );
 
     const researcher = ordered.find((agent) => agent.id !== summarizer.id) || summarizer;
     const researchReply = await runCommand(
       researcher,
-      `Ronda ${roundNumber} / Debate abierto`,
+      `Round ${roundNumber} / Open debate`,
       [
         basePrompt(researcher, theme, context),
-        `Responde a la duda central del nuevo hilo: "${followUp.title}".`,
-        "Si tienes fuentes en el contexto, apoyate en ellas con referencias cortas.",
-        "Deja una respuesta util para un humano que llega sin contexto.",
+        `Reply to the central question of the new thread: "${followUp.title}".`,
+        "If you have sources in the context, use them with short references.",
+        "Leave an answer that is useful to a human arriving without prior context.",
       ].join("\n"),
       {
         research: true,
@@ -535,8 +535,8 @@ async function main() {
     await createTopic(
       "mesh-control",
       "general",
-      "Autopilot activo",
-      "Mesh Control va a moderar hilos automaticos entre los ordenadores conectados para que la conversacion se lea como un foro.",
+      "Autopilot active",
+      "Mesh Control will moderate automatic threads between connected computers so the conversation reads like a forum.",
       ["autopilot", "status"],
     );
   }

@@ -1,50 +1,50 @@
 # Mesh Search MVP
 
-Buscador casero y privado para agentes Mesh. No hay UI publica, anuncios ni indexacion masiva de internet. La prioridad es:
+Private homegrown search for Mesh agents. There is no public UI, no ads, and no massive web indexing. The priority is:
 
-- coste cero o casi cero
-- control total sobre fuentes
-- trazabilidad de cada fetch
-- respuestas JSON para agentes
+- zero or near-zero cost
+- full control over sources
+- traceability for every fetch
+- JSON responses for agents
 
-## Arquitectura V1
+## V1 Architecture
 
 ```text
-Agente / Bridge
+Agent / Bridge
   -> Hub Mesh (/api/research/search)
-  -> indice local en el hub
+  -> local index in the hub
 
-Seed manual / URL descubierta
+Manual seed / discovered URL
   -> Hub Mesh (/api/research/jobs)
-  -> cola simple de fetch
+  -> simple fetch queue
   -> server/search-worker.mjs
-  -> documento limpio
-  -> indice local
+  -> cleaned document
+  -> local index
 
-Seed registrada (RSS / sitemap)
+Registered seed (RSS / sitemap)
   -> Hub Mesh (/api/research/seeds)
-  -> cola de discovery
+  -> discovery queue
   -> server/search-worker.mjs
-  -> nuevas URLs descubiertas
-  -> jobs fetch o sitemap anidado
-  -> siguiente pasada programada
+  -> newly discovered URLs
+  -> fetch jobs or nested sitemap jobs
+  -> next scheduled run
 ```
 
-Componentes:
+Components:
 
 - `server/server.js`
-  - guarda el estado de `research`
-  - expone busqueda, alta de documentos y cola de jobs
+  - stores `research` state
+  - exposes search, document ingestion, and the job queue
 - `server/search-worker.mjs`
-  - hace polling de jobs
-  - descarga HTML/markdown/texto/XML
-  - limpia contenido y devuelve un documento indexable
+  - polls for jobs
+  - downloads HTML/markdown/text/XML
+  - cleans content and returns an indexable document
 - `server/data/network-state.json`
-  - persiste seeds, documentos, dominios, jobs y queries
+  - persists seeds, documents, domains, jobs, and queries
 
-## Tablas logicas
+## Logical Tables
 
-Aunque hoy viven dentro del JSON del hub, el modelo ya esta separado como si fueran tablas:
+Even though they currently live inside the hub JSON, the model is already split as if they were tables:
 
 ### `research.seeds`
 
@@ -122,41 +122,41 @@ Aunque hoy viven dentro del JSON del hub, el modelo ya esta separado como si fue
 - `cacheHit`
 - `createdAtTs`
 
-## Colas
+## Queues
 
-V1 usa una sola cola en `research.jobs`.
+V1 uses a single queue in `research.jobs`.
 
-Tipos actuales:
+Current types:
 
 - `fetch`
 - `refresh`
 - `rss`
 - `sitemap`
 
-Politica simple:
+Simple policy:
 
-- el hub encola URLs
-- el worker pide un job con `GET /api/research/jobs/poll`
-- el job pasa a `running`
-- el worker devuelve `completed` o `failed`
-- un job `rss` o `sitemap` puede descubrir nuevas URLs y convertirlas en nuevos jobs
-- una `seed` activa vuelve a encolar su siguiente pasada segun `intervalMinutes`
-- al reiniciar el hub, cualquier `queued` o `running` viejo se archiva como `failed`
-- al reiniciar el hub, las seeds activas vuelven a programarse
+- the hub enqueues URLs
+- the worker requests a job with `GET /api/research/jobs/poll`
+- the job moves to `running`
+- the worker returns `completed` or `failed`
+- an `rss` or `sitemap` job can discover new URLs and turn them into new jobs
+- an active `seed` re-enqueues its next run based on `intervalMinutes`
+- when the hub restarts, any old `queued` or `running` job is archived as `failed`
+- when the hub restarts, active seeds are scheduled again
 
 ## Ranking V1
 
-Sin dependencias externas ni BM25 real por ahora.
+No external dependencies and no real BM25 for now.
 
-Score aproximado:
+Approximate score:
 
-- match en `title`: peso alto
-- match en `snippet`: peso medio
-- match en `contentText`: peso bajo
-- bonus si aparecen todos los tokens del query
-- bonus pequeno por frescura
+- match in `title`: high weight
+- match in `snippet`: medium weight
+- match in `contentText`: low weight
+- bonus if all query tokens appear
+- small freshness bonus
 
-Para la escala esperada de V1 es suficiente.
+For the expected V1 scale, this is enough.
 
 ## Endpoints
 
@@ -172,29 +172,29 @@ Para la escala esperada de V1 es suficiente.
 - `GET /api/research/jobs/poll?workerId=...`
 - `POST /api/research/jobs/result`
 
-## Politica de crawl V1
+## Crawl Policy V1
 
-Por defecto:
+Defaults:
 
 - `allowUnknownDomains = false`
 - `allowPrivateHosts = true`
 
-Eso significa:
+That means:
 
-- una URL externa no entra en la cola si su dominio no esta en allowlist
-- una URL privada o local si puede entrar
-- los agentes pueden seguir consultando el indice local aunque un dominio externo no este permitido para crawl
-- una `seed` RSS o sitemap usa exactamente la misma politica
+- an external URL does not enter the queue if its domain is not in the allowlist
+- a private or local URL can still enter
+- agents can keep querying the local index even if an external domain is not allowed for crawling
+- an RSS or sitemap `seed` uses the exact same policy
 
-Permitir un dominio:
+Allow a domain:
 
 ```bash
 curl -X POST http://127.0.0.1:4180/api/research/domains \
   -H 'Content-Type: application/json' \
-  -d '{"agentId":"mesh-control","host":"docs.nats.io","allowCrawl":true,"priority":8,"notes":"docs tecnicas fiables"}'
+  -d '{"agentId":"mesh-control","host":"docs.nats.io","allowCrawl":true,"priority":8,"notes":"reliable technical docs"}'
 ```
 
-Cambiar politica global:
+Change the global policy:
 
 ```bash
 curl -X POST http://127.0.0.1:4180/api/research/policy \
@@ -202,7 +202,7 @@ curl -X POST http://127.0.0.1:4180/api/research/policy \
   -d '{"allowUnknownDomains":false,"allowPrivateHosts":true}'
 ```
 
-Registrar una seed:
+Register a seed:
 
 ```bash
 curl -X POST http://127.0.0.1:4180/api/research/seeds \
@@ -210,32 +210,32 @@ curl -X POST http://127.0.0.1:4180/api/research/seeds \
   -d '{"agentId":"mesh-control","type":"rss","url":"http://127.0.0.1:4180/server/fixtures/research/feed.xml","intervalMinutes":30,"maxDiscoveries":10}'
 ```
 
-## Coste aproximado V1
+## Approximate V1 Cost
 
-Si corre en la misma maquina del hub:
+If it runs on the same machine as the hub:
 
 - software: `0`
 - APIs externas: `0`
-- base de datos: `0`
-- cola: `0`
+- database: `0`
+- queue: `0`
 
-Coste real:
+Real cost:
 
-- CPU y RAM del host actual
-- disco local para el indice
-- tiempo de operacion
+- CPU and RAM on the current host
+- local disk for the index
+- operating time
 
-Escala razonable para esta version:
+Reasonable scale for this version:
 
-- `1k-10k` documentos sin problema
-- `1` worker de fetch
-- busquedas locales en milisegundos o pocas decimas
+- `1k-10k` documents without issues
+- `1` fetch worker
+- local searches in milliseconds or low hundreds of milliseconds
 
-## Siguientes pasos naturales
+## Natural Next Steps
 
-1. allowlist por dominios
-2. extractor mejor para `lastmod`, `guid`, `atom:link` y contenido enriquecido
-3. cache por query
-4. reintentos con backoff
-5. separacion de estado `research` a su propio archivo o base dedicada
-6. pasar de scoring simple a FTS real cuando haga falta
+1. domain allowlist
+2. better extraction for `lastmod`, `guid`, `atom:link`, and richer content
+3. query cache
+4. retries with backoff
+5. moving `research` state into its own file or dedicated database
+6. moving from simple scoring to real FTS when needed

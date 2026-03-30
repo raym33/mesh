@@ -72,30 +72,30 @@ function truncate(value, limit = 240) {
 function printHelp() {
   process.stdout.write(`Mesh bridge MVP
 
-Uso:
+Usage:
   node server/bridge.mjs --hub http://127.0.0.1:4180 --runtime lmstudio --name "Forge Mini"
 
-Opciones clave:
-  --hub            URL del hub Mesh
+Key options:
+  --hub            Mesh hub URL
   --runtime        lmstudio | ollama | openai
-  --baseUrl        URL local OpenAI-compatible del runtime
-  --name           Nombre visible del agente
-  --handle         Handle publico, por ejemplo @forge-mini
-  --role           Rol operativo del agente
-  --machine        Nombre del equipo
+  --baseUrl        Local OpenAI-compatible runtime URL
+  --name           Visible agent name
+  --handle         Public handle, for example @forge-mini
+  --role           Agent role
+  --machine        Machine name
   --origin         open | hybrid | proprietary
-  --model          Modelo local a usar
-  --specialties    CSV de especialidades
-  --scopes         CSV de scopes
-  --pollMs         Intervalo de polling de jobs
-  --heartbeatMs    Intervalo de heartbeat
-  --apiKey         Bearer token si el runtime local lo exige
-  --internet       true | false para permitir busqueda web controlada
+  --model          Local model to use
+  --specialties    CSV list of specialties
+  --scopes         CSV list of scopes
+  --pollMs         Job polling interval
+  --heartbeatMs    Heartbeat interval
+  --apiKey         Bearer token if the local runtime requires it
+  --internet       true | false to allow controlled web research
   --researchProvider mesh | mesh-first | duckduckgo | brave | tavily | searxng
   --researchFallbackProvider duckduckgo | brave | tavily | searxng
-  --researchUrl    URL custom del proveedor de busqueda
-  --researchApiKey API key del proveedor
-  --researchResults Numero maximo de fuentes por job
+  --researchUrl    Custom search provider URL
+  --researchApiKey Search provider API key
+  --researchResults Maximum number of sources per job
 
 Presets:
   lmstudio -> http://127.0.0.1:1234/v1
@@ -154,7 +154,7 @@ const config = {
   role:
     args.role ||
     process.env.AGENT_ROLE ||
-    `Agente local conectado por ${runtimeName}`,
+    `Local agent connected through ${runtimeName}`,
   origin: args.origin || process.env.AGENT_ORIGIN || "open",
   machineName,
   benchmark: Number(args.benchmark || process.env.AGENT_BENCHMARK || 82),
@@ -203,7 +203,7 @@ const config = {
   systemPrompt:
     args.systemPrompt ||
     process.env.AGENT_SYSTEM_PROMPT ||
-    `Eres ${agentName}, un agente IA ejecutandose mediante ${runtimeName} en ${machineName}. Responde con claridad, de forma accionable y breve si no se te pide profundidad.`,
+    `You are ${agentName}, an AI agent running through ${runtimeName} on ${machineName}. Respond clearly, actionably, and briefly unless depth is requested.`,
   model: args.model || process.env.LOCAL_MODEL_NAME || process.env.LMSTUDIO_MODEL || process.env.OLLAMA_MODEL || "",
   protocolVersion: "1.0",
   capabilities: {
@@ -352,7 +352,7 @@ function shouldResearch(command) {
     return true;
   }
 
-  return /(verifica|verificar|comprueba|comprobar|busca|buscar|investiga|investigar|contrasta|fuentes?|internet|web)/i.test(
+  return /(verify|verified|check|search|research|compare|source|sources|internet|web)/i.test(
     `${command.title || ""}\n${command.prompt || ""}`,
   );
 }
@@ -422,7 +422,7 @@ async function searchDuckDuckGo(query) {
 
 async function searchBrave(query) {
   if (!config.researchApiKey) {
-    throw new Error("Brave requiere researchApiKey");
+    throw new Error("Brave requires researchApiKey");
   }
 
   const url = new URL(config.researchUrl || "https://api.search.brave.com/res/v1/web/search");
@@ -448,7 +448,7 @@ async function searchBrave(query) {
 
 async function searchTavily(query) {
   if (!config.researchApiKey) {
-    throw new Error("Tavily requiere researchApiKey");
+    throw new Error("Tavily requires researchApiKey");
   }
 
   const endpoint = config.researchUrl || "https://api.tavily.com/search";
@@ -478,7 +478,7 @@ async function searchTavily(query) {
 
 async function searchSearxng(query) {
   if (!config.researchUrl) {
-    throw new Error("SearXNG requiere researchUrl");
+    throw new Error("SearXNG requires researchUrl");
   }
 
   const url = new URL(
@@ -486,7 +486,7 @@ async function searchSearxng(query) {
   );
   url.searchParams.set("q", query);
   url.searchParams.set("format", "json");
-  url.searchParams.set("language", "es");
+  url.searchParams.set("language", "en");
 
   const data = await fetchExternalJson(url.toString(), {
     headers: {
@@ -546,7 +546,7 @@ function formatSourcesForPrompt(sources) {
   return sources
     .map(
       (source, index) =>
-        `[${index + 1}] ${source.title}\nURL: ${source.url}\nResumen: ${source.snippet || "Sin resumen"}`,
+        `[${index + 1}] ${source.title}\nURL: ${source.url}\nSummary: ${source.snippet || "No summary"}`,
     )
     .join("\n\n");
 }
@@ -570,7 +570,7 @@ async function maybeResearch(command) {
 
   try {
     const sources = await searchWeb(query);
-    process.stdout.write(`research ok / ${command.title} / ${sources.length} fuentes\n`);
+    process.stdout.write(`research ok / ${command.title} / ${sources.length} sources\n`);
     return {
       promptContext: formatSourcesForPrompt(sources),
       sources,
@@ -591,7 +591,7 @@ async function discoverModel() {
   const firstModel = data?.data?.[0]?.id;
 
   if (!firstModel && !config.model) {
-    throw new Error(`${config.runtime} no devolvio modelos en /models`);
+    throw new Error(`${config.runtime} returned no models from /models`);
   }
 
   if (!config.model) {
@@ -668,10 +668,10 @@ async function runPrompt(command) {
     ? [
         command.prompt,
         "",
-        "Contexto web verificado:",
+        "Verified web context:",
         research.promptContext,
         "",
-        "Si usas estos datos, cita los numeros de fuente entre corchetes.",
+        "If you use these sources, cite them with bracketed numbers.",
       ].join("\n")
     : command.prompt;
   const { data } = await postJson(config.chatUrl, {
@@ -681,7 +681,7 @@ async function runPrompt(command) {
       {
         role: "system",
         content: research.promptContext
-          ? `${config.systemPrompt} Cuando cites fuentes web, usa referencias [1], [2] y no inventes URLs.`
+          ? `${config.systemPrompt} When citing web sources, use references like [1], [2] and do not invent URLs.`
           : config.systemPrompt,
       },
       {

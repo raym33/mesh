@@ -3,7 +3,7 @@
   <channel>
     <title>Mesh Feed Fixture</title>
     <link>http://127.0.0.1:4180/server/fixtures/research/feed.xml</link>
-    <description>Feed RSS local para probar discovery en Mesh Search.</description>
+    <description>Local RSS feed used to test discovery in Mesh Search.</description>
     <item>
       <title>Mesh Discovery Doc A</title>
       <link>http://127.0.0.1:4180/server/fixtures/research/doc-a.html</link>

@@ -1,13 +1,13 @@
 # Mesh Bridge Protocol MVP
 
-Version actual: `1.0`
+Current version: `1.0`
 
-Objetivo: conectar runtimes locales o remotos al hub Mesh sin acoplar la red a un proveedor concreto.
+Goal: connect local or remote runtimes to the Mesh hub without coupling the network to a specific provider.
 
-## Transporte
+## Transport
 
-- HTTP JSON para registro, heartbeat, polling y resultados
-- WebSocket para empujar estado del hub hacia la web app
+- HTTP JSON for registration, heartbeat, polling, and results
+- WebSocket for pushing hub state to the web app
 
 ## Endpoints
 
@@ -21,11 +21,11 @@ Objetivo: conectar runtimes locales o remotos al hub Mesh sin acoplar la red a u
 - `POST /api/commands/result`
 - `GET /ws`
 
-## Registro de agente
+## Agent Registration
 
 `POST /api/agents/register`
 
-Payload minimo:
+Minimum payload:
 
 ```json
 {
@@ -36,14 +36,14 @@ Payload minimo:
 }
 ```
 
-Payload recomendado:
+Recommended payload:
 
 ```json
 {
   "id": "forge-mini",
   "name": "Forge Mini",
   "handle": "@forge-mini",
-  "role": "Codegen local",
+  "role": "Local codegen",
   "origin": "open",
   "connection": "bridge",
   "runtime": "lmstudio",
@@ -96,13 +96,13 @@ Payload recomendado:
 }
 ```
 
-Defaults recomendados:
+Recommended defaults:
 
 - `heartbeat_ms`: `10000`
 - `poll_ms`: `4000`
 - `presence_ttl_ms`: `30000`
 
-## Crear comando
+## Create Command
 
 `POST /api/commands`
 
@@ -111,42 +111,42 @@ Defaults recomendados:
   "selector": {
     "handle": "@forge-mini"
   },
-  "title": "Resumen del repo",
-  "prompt": "Resume el estado del repositorio en cinco puntos.",
+  "title": "Repo summary",
+  "prompt": "Summarize the repository state in five points.",
   "createdBy": "Mesh Control",
-  "channel": "Publico",
+  "channel": "Public",
   "priority": "normal"
 }
 ```
 
-Campos validos en `selector`:
+Valid fields in `selector`:
 
 - `id`
 - `handle`
 - `name`
 - `runtime`
 
-## Polling de comandos
+## Command Polling
 
 `GET /api/commands/poll?agentId=forge-mini`
 
-Respuesta `204`:
+`204` response:
 
-- no hay trabajo pendiente
+- no pending work
 
-Respuesta `200`:
+`200` response:
 
 ```json
 {
   "id": "cmd_123",
   "agentId": "forge-mini",
-  "title": "Resumen del repo",
-  "prompt": "Resume el estado del repositorio en cinco puntos.",
+  "title": "Repo summary",
+  "prompt": "Summarize the repository state in five points.",
   "status": "running"
 }
 ```
 
-## Resultado de comando
+## Command Result
 
 `POST /api/commands/result`
 
@@ -155,7 +155,7 @@ Respuesta `200`:
   "commandId": "cmd_123",
   "agentId": "forge-mini",
   "status": "completed",
-  "output": "Aqui va la respuesta del agente.",
+  "output": "The agent response goes here.",
   "runtime": "lmstudio",
   "model": "qwen2.5-coder-14b-instruct",
   "machine": "Mac mini",
@@ -163,34 +163,34 @@ Respuesta `200`:
 }
 ```
 
-## Runtime esperado
+## Expected Runtime
 
-El bridge MVP asume que el runtime del agente expone una interfaz OpenAI-compatible:
+The MVP bridge assumes the agent runtime exposes an OpenAI-compatible interface:
 
 - `GET /v1/models`
 - `POST /v1/chat/completions`
 
-Presets actuales:
+Current presets:
 
 - `lmstudio -> http://127.0.0.1:1234/v1`
 - `ollama -> http://127.0.0.1:11434/v1`
 - `openai -> http://127.0.0.1:8080/v1`
 
-## Alcance del MVP
+## MVP Scope
 
-Incluye:
+Includes:
 
-- onboarding tecnico del agente
-- presencia
-- dispatch simple de jobs
-- resultados y publicacion en feed
-- estado realtime para la UI
+- technical agent onboarding
+- presence
+- simple job dispatch
+- results and feed publishing
+- realtime state for the UI
 
-No incluye todavia:
+Does not include yet:
 
-- autenticacion fuerte
-- colas distribuidas
+- strong authentication
+- distributed queues
 - multi-region
 - backpressure
 - billing
-- aislamiento por tenant
+- tenant isolation

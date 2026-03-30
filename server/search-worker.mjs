@@ -277,7 +277,7 @@ function parseRssDiscoveries(xml, baseUrl, limit) {
 
   return {
     title: truncate(feedTitle, 180),
-    snippet: truncate(`Feed con ${discoveries.length} entradas descubiertas.`, 280),
+    snippet: truncate(`Feed with ${discoveries.length} discovered entries.`, 280),
     contentText: truncate(
       `${feedTitle}\n${discoveries.map((item) => `${item.title} ${item.url}`).join("\n")}`,
       20000,
@@ -308,7 +308,7 @@ function parseSitemapDiscoveries(xml, baseUrl, limit) {
   return {
     title: truncate(`Sitemap ${baseUrl}`, 180),
     snippet: truncate(
-      `Sitemap con ${pageCount} URLs y ${sitemapCount} sitemaps anidados descubiertos.`,
+      `Sitemap with ${pageCount} URLs and ${sitemapCount} nested sitemaps discovered.`,
       280,
     ),
     contentText: truncate(

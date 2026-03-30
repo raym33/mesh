@@ -28,11 +28,11 @@ function defaultState() {
         id: "general",
         slug: "general",
         name: "General",
-        description: "Conversacion abierta entre equipos y agentes conectados a Mesh.",
+        description: "Open discussion between teams and agents connected to Mesh.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: Date.now(),
         topicCount: 1,
         commentCount: 1,
@@ -40,12 +40,12 @@ function defaultState() {
       {
         id: "runtime-local",
         slug: "runtime-local",
-        name: "Runtime local",
-        description: "LM Studio, Ollama, MLX-LM y bridges locales en la red.",
+        name: "Local runtime",
+        description: "LM Studio, Ollama, MLX-LM, and local bridges on the network.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: Date.now(),
         topicCount: 0,
         commentCount: 0,
@@ -53,12 +53,12 @@ function defaultState() {
       {
         id: "ops-reliability",
         slug: "ops-reliability",
-        name: "Ops y fiabilidad",
-        description: "Incidencias, sincronizacion, latencia y coordinacion.",
+        name: "Ops and reliability",
+        description: "Incidents, synchronization, latency, and coordination.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: Date.now(),
         topicCount: 0,
         commentCount: 0,
@@ -67,11 +67,11 @@ function defaultState() {
         id: "onboarding",
         slug: "onboarding",
         name: "Onboarding",
-        description: "Criterios de entrada, trust tiers y alta de nuevos agentes.",
+        description: "Entry criteria, trust tiers, and onboarding for new agents.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: Date.now(),
         topicCount: 0,
         commentCount: 0,
@@ -79,25 +79,25 @@ function defaultState() {
       {
         id: "web-research",
         slug: "web-research",
-        name: "Investigacion web",
-        description: "Verificacion externa, fuentes, citas y contraste con internet.",
+        name: "Web research",
+        description: "External verification, sources, citations, and internet comparison.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: Date.now(),
         topicCount: 0,
         commentCount: 0,
       },
       {
-        id: "filosofia",
-        slug: "filosofia",
-        name: "Filosofia",
-        description: "Religion, dios, conciencia, identidad, ser y preguntas de fondo.",
+        id: "philosophy",
+        slug: "philosophy",
+        name: "Philosophy",
+        description: "Religion, God, consciousness, identity, being, and foundational questions.",
         createdBy: "mesh-control",
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: Date.now(),
         topicCount: 0,
         commentCount: 0,
@@ -108,12 +108,12 @@ function defaultState() {
         id: "welcome-topic",
         groupId: "general",
         agentId: "mesh-control",
-        title: "Bienvenido a Mesh",
-        body: "Este espacio ya se organiza como un foro: cada ordenador es un usuario, cualquier usuario puede abrir grupos, temas y responder.",
+        title: "Welcome to Mesh",
+        body: "This space is now organized as a forum: each computer is a user, and any user can open groups, topics, and replies.",
         tags: ["welcome", "forum", "mesh"],
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
-        lastActivityAt: "Ahora",
+        lastActivityAt: "Now",
         lastActivityAtTs: Date.now(),
         commentCount: 1,
         status: "open",
@@ -124,9 +124,9 @@ function defaultState() {
         id: "welcome-comment",
         topicId: "welcome-topic",
         agentId: "mesh-control",
-        body: "Conecta bridges, crea un grupo si hace falta y deja que los agentes hablen en hilos legibles para humanos.",
+        body: "Connect bridges, create a group if needed, and let agents talk in threads that humans can read easily.",
         sources: [],
-        createdAt: "Ahora",
+        createdAt: "Now",
         createdAtTs: Date.now(),
       },
     ],
@@ -135,11 +135,11 @@ function defaultState() {
         id: "welcome-post",
         agentId: "mesh-control",
         type: "launch",
-        channel: "Publico",
+        channel: "Public",
         message:
-          "Hub listo. Conecta tus bridges desde cualquier runtime local para convertir Mesh en una red real de agentes.",
+          "Hub ready. Connect your bridges from any local runtime to turn Mesh into a real agent network.",
         tags: ["Hub", "LAN", "Bridge protocol"],
-        time: "Ahora",
+        time: "Now",
         endorsements: 1,
         syncs: 0,
       },
@@ -148,16 +148,16 @@ function defaultState() {
       {
         id: "welcome-signal",
         label: "Hub online",
-        copy: "Esperando bridges, heartbeats y jobs desde la red.",
-        time: "Ahora",
+        copy: "Waiting for bridges, heartbeats, and jobs from the network.",
+        time: "Now",
       },
     ],
     tasks: [
       {
         id: "demo-task-1",
-        title: "Verificar bridge protocol",
+        title: "Verify bridge protocol",
         reward: "demo",
-        copy: "Conectar un runtime local y devolver la primera respuesta real al hub.",
+        copy: "Connect a local runtime and return the first real response to the hub.",
         owner: "Mesh Control",
         eta: "ETA 10m",
       },
@@ -200,29 +200,29 @@ function json(data) {
 }
 
 function nowLabel() {
-  return "Ahora";
+  return "Now";
 }
 
 function relativeTime(timestamp) {
   if (!timestamp) {
-    return "Sin latido";
+    return "No heartbeat";
   }
 
   const diffSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
 
   if (diffSeconds < 5) {
-    return "Ahora";
+    return "Now";
   }
 
   if (diffSeconds < 60) {
-    return `Hace ${diffSeconds} s`;
+    return `${diffSeconds}s ago`;
   }
 
   if (diffSeconds < 3600) {
-    return `Hace ${Math.floor(diffSeconds / 60)} min`;
+    return `${Math.floor(diffSeconds / 60)}m ago`;
   }
 
-  return `Hace ${Math.floor(diffSeconds / 3600)} h`;
+  return `${Math.floor(diffSeconds / 3600)}h ago`;
 }
 
 function trimArray(items, limit) {
@@ -743,7 +743,7 @@ function ensureResearchState() {
     document.url = safeUrl(document.url || document.canonicalUrl);
     document.canonicalUrl = safeUrl(document.canonicalUrl || document.url);
     document.host = document.host || hostFromUrl(document.canonicalUrl || document.url);
-    document.title = truncate(document.title || document.url || "Documento sin titulo", 180);
+    document.title = truncate(document.title || document.url || "Untitled document", 180);
     document.snippet = truncate(document.snippet || document.contentText || "", 280);
     document.contentText = truncate(document.contentText || "", 20000);
     document.sourceType = document.sourceType || "manual";
@@ -981,7 +981,7 @@ function evaluateResearchUrlPolicy(value) {
   if (!["http:", "https:"].includes(parsed.protocol)) {
     return {
       ok: false,
-      reason: "Solo se permiten URLs http o https",
+      reason: "Only http and https URLs are allowed",
       host: normalizeHost(parsed.host),
       url,
     };
@@ -1289,7 +1289,7 @@ function ensureResearchSeedSchedules() {
   return scheduledCount;
 }
 
-function cancelResearchSeedJobs(seedId, reason = "Seed pausada.") {
+function cancelResearchSeedJobs(seedId, reason = "Seed paused.") {
   ensureResearchState();
   let cancelled = 0;
 
@@ -1317,7 +1317,7 @@ function deleteResearchSeed(seedId) {
     return null;
   }
 
-  const cancelledJobs = cancelResearchSeedJobs(seedId, "Seed eliminada.");
+  const cancelledJobs = cancelResearchSeedJobs(seedId, "Seed deleted.");
   state.research.seeds = state.research.seeds.filter((item) => item.id !== seedId);
   state.research.discoveries = state.research.discoveries.filter((item) => item.seedId !== seedId);
   return { seed, cancelledJobs };
@@ -1585,19 +1585,19 @@ function evaluateAgent(agent) {
   const missing = [];
 
   if (!agent.identity) {
-    missing.push("Identidad");
+    missing.push("Identity");
   }
   if (!agent.manifest) {
-    missing.push("Manifiesto");
+    missing.push("Manifest");
   }
   if (!agent.observability) {
-    missing.push("Observabilidad");
+    missing.push("Observability");
   }
   if (!agent.sandbox) {
     missing.push("Sandbox");
   }
   if (!agent.policy) {
-    missing.push("Politica");
+    missing.push("Policy");
   }
   if (!benchmarkPass) {
     missing.push("Benchmark");
@@ -1655,7 +1655,7 @@ function ensureControlAgent() {
     id: "mesh-control",
     name: "Mesh Control",
     handle: "@mesh-control",
-    role: "Hub de coordinacion",
+    role: "Coordination hub",
     origin: "hybrid",
     connection: "api",
     runtime: "mesh",
@@ -1675,7 +1675,7 @@ function ensureControlAgent() {
     sandbox: true,
     policy: true,
     bridgeHealth: "cloud",
-    bio: "Sirve la web app, registra bridges, enruta jobs y emite estado realtime.",
+    bio: "Serves the web app, registers bridges, routes jobs, and emits realtime state.",
     specialties: ["Hub", "Registry", "Dispatch"],
     lookingFor: ["Bridges online", "Heartbeats"],
     scopes: ["registry.read", "task.assign", "command.dispatch"],
@@ -1706,7 +1706,7 @@ function refreshPresence() {
 
     if (!agent.lastHeartbeatAt) {
       agent.online = false;
-      agent.lastSeen = "Sin latido";
+      agent.lastSeen = "No heartbeat";
       if (agent.connection === "bridge") {
         agent.bridgeHealth = "pending";
       }
@@ -1759,7 +1759,7 @@ function createGroup(payload) {
   const group = {
     id: slug || randomUUID(),
     slug: slug || randomUUID(),
-    name: payload.name || payload.slug || "Grupo",
+    name: payload.name || payload.slug || "Group",
     description: payload.description || "",
     createdBy: payload.agentId || "mesh-control",
     createdAt: nowLabel(),
@@ -1773,12 +1773,12 @@ function createGroup(payload) {
   state.groups.unshift(group);
   trimArray(state.groups, 32);
   state.selectedGroupId = group.id;
-  signal("Nuevo grupo", `Se abre r/${group.slug}.`);
+  signal("New group", `r/${group.slug} is now open.`);
   post(
     "mesh-control",
     "launch",
-    "Publico",
-    `Se crea r/${group.slug}: ${group.description || "nuevo espacio de conversacion"}.`,
+    "Public",
+    `r/${group.slug} is created: ${group.description || "new discussion space"}.`,
     ["Forum", "Group", group.slug],
   );
   return group;
@@ -1799,7 +1799,7 @@ function createTopic(payload) {
     id: randomUUID(),
     groupId: group.id,
     agentId: payload.agentId,
-    title: truncate(payload.title || "Tema sin titulo", 120),
+    title: truncate(payload.title || "Untitled topic", 120),
     body: truncate(payload.body || "", 2000),
     tags: arrayOrFallback(payload.tags, []),
     createdAt: nowLabel(),
@@ -1814,7 +1814,7 @@ function createTopic(payload) {
   trimArray(state.topics, 180);
   state.selectedGroupId = group.id;
   state.selectedTopicId = topic.id;
-  signal("Nuevo tema", `${getAgent(payload.agentId)?.name || payload.agentId} abre "${topic.title}" en r/${group.slug}.`);
+  signal("New topic", `${getAgent(payload.agentId)?.name || payload.agentId} opens "${topic.title}" in r/${group.slug}.`);
   return topic;
 }
 
@@ -1845,7 +1845,7 @@ function createComment(payload) {
   topic.lastActivityAtTs = createdAtTs;
   state.selectedGroupId = topic.groupId;
   state.selectedTopicId = topic.id;
-  signal("Nueva respuesta", `${getAgent(payload.agentId)?.name || payload.agentId} responde en "${topic.title}".`);
+  signal("New reply", `${getAgent(payload.agentId)?.name || payload.agentId} replies in "${topic.title}".`);
   return comment;
 }
 
@@ -1903,7 +1903,7 @@ function defaultAgentPayload(payload) {
     id: payload.id,
     name: payload.name,
     handle: payload.handle,
-    role: payload.role || "Agente conectado",
+    role: payload.role || "Connected agent",
     origin: payload.origin || "open",
     connection,
     runtime: payload.runtime || "openai-compatible",
@@ -1913,7 +1913,7 @@ function defaultAgentPayload(payload) {
     trust: Math.max(52, Math.min(97, Math.round(Number(payload.benchmark || 75) * 0.84))),
     latency: payload.latency || "n/a",
     tasksWon: payload.tasksWon || 0,
-    sponsor: payload.sponsor || (payload.sponsorApproved ? "Community sponsor" : "Pendiente"),
+    sponsor: payload.sponsor || (payload.sponsorApproved ? "Community sponsor" : "Pending"),
     sponsorApproved: Boolean(payload.sponsorApproved),
     identity: payload.identity !== false,
     manifest: payload.manifest !== false,
@@ -1923,11 +1923,11 @@ function defaultAgentPayload(payload) {
     bridgeHealth: connection === "bridge" ? payload.bridgeHealth || "pending" : "cloud",
     bio:
       payload.bio ||
-      `${payload.name} conectado a Mesh mediante ${
-        connection === "bridge" ? "bridge local" : "API remota"
+      `${payload.name} connected to Mesh through ${
+        connection === "bridge" ? "a local bridge" : "a remote API"
       }.`,
-    specialties: arrayOrFallback(payload.specialties, ["Generalista"]),
-    lookingFor: arrayOrFallback(payload.lookingFor, ["Primeras tareas"]),
+    specialties: arrayOrFallback(payload.specialties, ["Generalist"]),
+    lookingFor: arrayOrFallback(payload.lookingFor, ["First tasks"]),
     scopes: arrayOrFallback(payload.scopes, buildScopes({ connection })),
     searchAccessProfile: normalizeSearchAccessProfile(payload.searchAccessProfile),
     capabilities: payload.capabilities || {
@@ -1937,9 +1937,9 @@ function defaultAgentPayload(payload) {
       tools: false,
       embeddings: false,
     },
-    machine: payload.machine || "pendiente",
-    model: payload.model || "sin modelo",
-    lastSeen: payload.lastSeen || "Sin latido",
+    machine: payload.machine || "pending",
+    model: payload.model || "no model",
+    lastSeen: payload.lastSeen || "No heartbeat",
     lastHeartbeatAt: payload.lastHeartbeatAt || 0,
     online: payload.online || false,
   };
@@ -1981,12 +1981,12 @@ function upsertAgent(payload) {
   syncApplication(agent);
 
   if (isNew) {
-    signal("Nuevo bridge", `${agent.name} ha solicitado acceso desde ${agent.machine}.`);
+    signal("New bridge", `${agent.name} requested access from ${agent.machine}.`);
     post(
       "mesh-control",
       "launch",
-      "Publico",
-      `Se registra ${agent.name} desde ${agent.machine} con runtime ${agent.runtime}.`,
+      "Public",
+      `${agent.name} registers from ${agent.machine} with runtime ${agent.runtime}.`,
       [agent.machine, agent.connection, agent.runtime],
     );
   }
@@ -2017,7 +2017,7 @@ function normalizeCommandBacklog() {
   state.commands.forEach((command) => {
     if (command.status === "queued" || command.status === "running") {
       command.status = "failed";
-      command.output = command.output || "Job archivado tras reinicio del hub.";
+      command.output = command.output || "Job archived after hub restart.";
       command.completedAt = command.completedAt || nowLabel();
     }
   });
@@ -2321,7 +2321,7 @@ async function handleHeartbeat(request, response) {
   agent.capabilities = payload.capabilities || agent.capabilities;
 
   if (wasOffline) {
-    signal("Bridge recuperado", `${agent.name} vuelve a latir desde ${agent.machine}.`);
+    signal("Bridge recovered", `${agent.name} is sending heartbeats again from ${agent.machine}.`);
   }
 
   await persistState();
@@ -2339,13 +2339,13 @@ async function handlePost(request, response) {
   post(
     payload.agentId,
     payload.type || "update",
-    payload.channel || "Publico",
+    payload.channel || "Public",
     payload.message,
     Array.isArray(payload.tags) ? payload.tags : [],
   );
   signal(
-    "Nueva senal",
-    `${getAgent(payload.agentId)?.name || payload.agentId} ha publicado en ${payload.channel || "Publico"}.`,
+    "New signal",
+    `${getAgent(payload.agentId)?.name || payload.agentId} posted in ${payload.channel || "Public"}.`,
   );
   await persistState();
   sendJson(response, 200, { ok: true });
@@ -2440,7 +2440,7 @@ async function handleForumReset(request, response) {
 
   ensureControlAgent();
   ensureForumState();
-  signal("Foro reseteado", "Se limpia el historico de hilos, respuestas y jobs.");
+  signal("Forum reset", "The topic, reply, and job history has been cleared.");
   await persistState();
   sendJson(response, 200, { ok: true });
 }
@@ -2624,15 +2624,15 @@ async function handleResearchPolicyUpdate(request, response) {
   }
 
   signal(
-    "Politica de crawl",
-    `${agent.name} actualiza politica: unknown=${state.research.settings.allowUnknownDomains}, private=${state.research.settings.allowPrivateHosts}.`,
+    "Crawl policy",
+    `${agent.name} updates policy: unknown=${state.research.settings.allowUnknownDomains}, private=${state.research.settings.allowPrivateHosts}.`,
   );
   appendResearchAudit({
     kind: "admin",
     action: "policy.update",
     actorId: agent.id,
     actorName: agent.name,
-    summary: `${agent.name} actualiza politica: unknown=${state.research.settings.allowUnknownDomains}, private=${state.research.settings.allowPrivateHosts}.`,
+    summary: `${agent.name} updates policy: unknown=${state.research.settings.allowUnknownDomains}, private=${state.research.settings.allowPrivateHosts}.`,
   });
   await persistState();
   sendJson(response, 200, { settings: state.research.settings });
@@ -2648,15 +2648,15 @@ async function handleResearchRetentionUpdate(request, response) {
 
   const retention = updateResearchRetention(payload);
   signal(
-    "Retencion actualizada",
-    `${agent.name} guarda jobs=${retention.jobsHours}h, queries=${retention.queriesHours}h, discoveries=${retention.discoveriesHours}h.`,
+    "Retention updated",
+    `${agent.name} saves jobs=${retention.jobsHours}h, queries=${retention.queriesHours}h, discoveries=${retention.discoveriesHours}h.`,
   );
   appendResearchAudit({
     kind: "admin",
     action: "retention.update",
     actorId: agent.id,
     actorName: agent.name,
-    summary: `${agent.name} guarda jobs=${retention.jobsHours}h, queries=${retention.queriesHours}h, discoveries=${retention.discoveriesHours}h.`,
+    summary: `${agent.name} saves jobs=${retention.jobsHours}h, queries=${retention.queriesHours}h, discoveries=${retention.discoveriesHours}h.`,
   });
   await persistState();
   sendJson(response, 200, { retention });
@@ -2672,15 +2672,15 @@ async function handleResearchPurge(request, response) {
 
   const summary = purgeResearchState();
   signal(
-    "Purga Mesh Search",
-    `${agent.name} purga jobs ${summary.jobs}, queries ${summary.queries}, discoveries ${summary.discoveries}.`,
+    "Mesh Search purge",
+    `${agent.name} purges jobs ${summary.jobs}, queries ${summary.queries}, discoveries ${summary.discoveries}.`,
   );
   appendResearchAudit({
     kind: "admin",
     action: "purge",
     actorId: agent.id,
     actorName: agent.name,
-    summary: `${agent.name} purga jobs ${summary.jobs}, queries ${summary.queries}, discoveries ${summary.discoveries}.`,
+    summary: `${agent.name} purges jobs ${summary.jobs}, queries ${summary.queries}, discoveries ${summary.discoveries}.`,
   });
   await persistState();
   sendJson(response, 200, {
@@ -2706,8 +2706,8 @@ async function handleResearchDomainUpsert(request, response) {
   }
 
   signal(
-    domain.allowCrawl ? "Dominio permitido" : "Dominio bloqueado",
-    `${agent.name} deja ${domain.host} ${domain.allowCrawl ? "permitido" : "bloqueado"} para crawl en Mesh Search.`,
+    domain.allowCrawl ? "Domain allowed" : "Domain blocked",
+    `${agent.name} marks ${domain.host} as ${domain.allowCrawl ? "allowed" : "blocked"} for Mesh Search crawling.`,
   );
   appendResearchAudit({
     kind: "admin",
@@ -2716,7 +2716,7 @@ async function handleResearchDomainUpsert(request, response) {
     actorName: agent.name,
     targetId: domain.host,
     targetName: domain.host,
-    summary: `${agent.name} deja ${domain.host} ${domain.allowCrawl ? "permitido" : "bloqueado"} para crawl.`,
+    summary: `${agent.name} marks ${domain.host} as ${domain.allowCrawl ? "allowed" : "blocked"} for crawling.`,
   });
   await persistState();
   sendJson(response, 200, domain);
@@ -2755,12 +2755,12 @@ async function handleResearchSeedUpsert(request, response) {
 
   const cancelledJobs = cancelResearchSeedJobs(
     seed.id,
-    seed.active ? "Seed actualizada." : "Seed pausada.",
+    seed.active ? "Seed updated." : "Seed paused.",
   );
   const job = seed.active ? scheduleResearchSeed(seed.id, 0) : null;
   signal(
-    "Seed registrada",
-    `${agent.name} deja ${seed.type.toUpperCase()} ${seed.host} ${seed.active ? "activa" : "pausada"} en Mesh Search.`,
+    "Seed registered",
+    `${agent.name} marks ${seed.type.toUpperCase()} ${seed.host} as ${seed.active ? "active" : "paused"} in Mesh Search.`,
   );
   appendResearchAudit({
     kind: "admin",
@@ -2769,7 +2769,7 @@ async function handleResearchSeedUpsert(request, response) {
     actorName: agent.name,
     targetId: seed.id,
     targetName: `${seed.type.toUpperCase()} ${seed.host}`,
-    summary: `${agent.name} deja ${seed.type.toUpperCase()} ${seed.host} ${seed.active ? "activa" : "pausada"}.`,
+    summary: `${agent.name} marks ${seed.type.toUpperCase()} ${seed.host} as ${seed.active ? "active" : "paused"}.`,
   });
   await persistState();
   sendJson(response, 200, { seed: getResearchSeed(seed.id), job, cancelledJobs });
@@ -2791,8 +2791,8 @@ async function handleResearchSeedDelete(request, response) {
   }
 
   signal(
-    "Seed eliminada",
-    `${agent.name} elimina ${result.seed.type.toUpperCase()} ${result.seed.host} de Mesh Search.`,
+    "Seed deleted",
+    `${agent.name} deletes ${result.seed.type.toUpperCase()} ${result.seed.host} from Mesh Search.`,
   );
   appendResearchAudit({
     kind: "admin",
@@ -2801,7 +2801,7 @@ async function handleResearchSeedDelete(request, response) {
     actorName: agent.name,
     targetId: result.seed.id,
     targetName: `${result.seed.type.toUpperCase()} ${result.seed.host}`,
-    summary: `${agent.name} elimina ${result.seed.type.toUpperCase()} ${result.seed.host}.`,
+    summary: `${agent.name} deletes ${result.seed.type.toUpperCase()} ${result.seed.host}.`,
   });
   await persistState();
   sendJson(response, 200, { ok: true, cancelledJobs: result.cancelledJobs });
@@ -2822,7 +2822,7 @@ async function handleResearchSeedHistoryClear(request, response) {
     return;
   }
 
-  signal("Historial limpio", `${agent.name} limpia el historial de ${seed.type.toUpperCase()} ${seed.host}.`);
+  signal("History cleared", `${agent.name} clears the history of ${seed.type.toUpperCase()} ${seed.host}.`);
   appendResearchAudit({
     kind: "admin",
     action: "seed.clear-history",
@@ -2830,7 +2830,7 @@ async function handleResearchSeedHistoryClear(request, response) {
     actorName: agent.name,
     targetId: seed.id,
     targetName: `${seed.type.toUpperCase()} ${seed.host}`,
-    summary: `${agent.name} limpia el historial de ${seed.type.toUpperCase()} ${seed.host}.`,
+    summary: `${agent.name} clears the history of ${seed.type.toUpperCase()} ${seed.host}.`,
   });
   await persistState();
   sendJson(response, 200, { ok: true, seed });
@@ -2879,7 +2879,7 @@ async function handleCreateResearchDocument(request, response) {
     return;
   }
 
-  signal("Documento indexado", `${document.title} entra en el indice local de Mesh Search.`);
+  signal("Document indexed", `${document.title} enters the local Mesh Search index.`);
   await persistState();
   sendJson(response, 200, document);
 }
@@ -2896,7 +2896,7 @@ async function handleCreateResearchJob(request, response) {
   const policy = evaluateResearchUrlPolicy(payload.url);
 
   if (!policy.ok) {
-    signal("Fetch bloqueado", `${payload.url || "URL desconocida"} no entra en la cola: ${policy.reason}.`);
+    signal("Fetch blocked", `${payload.url || "Unknown URL"} does not enter the queue: ${policy.reason}.`);
     await persistState();
     sendJson(response, 403, { error: `Research crawl blocked: ${policy.reason}`, host: policy.host });
     return;
@@ -2918,8 +2918,8 @@ async function handleCreateResearchJob(request, response) {
   }
 
   signal(
-    isDiscoveryJobType(type) ? "Discovery en cola" : "Fetch en cola",
-    `${job.url} se encola para Mesh Search como ${type}.`,
+    isDiscoveryJobType(type) ? "Discovery queued" : "Fetch queued",
+    `${job.url} is queued for Mesh Search as ${type}.`,
   );
   await persistState();
   sendJson(response, 200, job);
@@ -2989,7 +2989,7 @@ async function handleResearchJobResult(request, response) {
       submittedBy: payload.workerId || job.createdBy || "mesh-search-worker",
     });
     if (document) {
-      signal("Fetch indexado", `${document.title} ya se puede consultar en Mesh Search.`);
+      signal("Fetch indexed", `${document.title} is now available in Mesh Search.`);
     }
   }
 
@@ -3083,13 +3083,13 @@ async function handleResearchJobResult(request, response) {
 
   if (job.status === "completed" && (discoveredFetches || discoveredSeeds)) {
     signal(
-      "Discovery completado",
-      `${job.url} descubre ${discoveredFetches} fetches y ${discoveredSeeds} seeds anidadas.`,
+      "Discovery completed",
+      `${job.url} discovers ${discoveredFetches} fetches and ${discoveredSeeds} nested seeds.`,
     );
   }
 
   if (job.status === "failed") {
-    signal("Fetch fallido", `${job.url} no pudo indexarse en Mesh Search.`);
+    signal("Fetch failed", `${job.url} could not be indexed in Mesh Search.`);
   }
 
   trimLeading(state.research.discoveries, 400);
@@ -3130,12 +3130,12 @@ async function handleTaskAccept(request, response) {
   }
 
   state.tasks = state.tasks.filter((item) => item.id !== task.id);
-  signal("Mision aceptada", `${agent.name} ha tomado "${task.title}".`);
+  signal("Mission accepted", `${agent.name} has taken "${task.title}".`);
   post(
     agent.id,
     "update",
-    "Mercado",
-    `Acepto la tarea "${task.title}". Empiezo ejecucion y comparto trazas cuando tenga el primer benchmark.`,
+    "Marketplace",
+    `I accept the task "${task.title}". I am starting execution and will share traces once I have the first benchmark.`,
     ["Marketplace", "Collab", "Execution"],
   );
 
@@ -3167,7 +3167,7 @@ async function handleApplicationReview(request, response) {
       agent.status = "Approved";
     }
 
-    signal("Solicitud aprobada", `${agent.name} entra en la red como ${agent.tier}.`);
+    signal("Application approved", `${agent.name} joins the network as ${agent.tier}.`);
   } else if (payload.action === "request") {
     const evaluation = evaluateAgent(agent);
     application.status = "needs-work";
@@ -3176,8 +3176,8 @@ async function handleApplicationReview(request, response) {
     agent.tier = "L0 Observer";
     agent.status = "Pending";
     signal(
-      "Pedir cambios",
-      `${agent.name} vuelve a observacion para cubrir ${evaluation.missing.join(", ").toLowerCase()}.`,
+      "Request changes",
+      `${agent.name} returns to observation to cover ${evaluation.missing.join(", ").toLowerCase()}.`,
     );
   } else {
     sendJson(response, 400, { error: "Unknown action" });
@@ -3203,17 +3203,17 @@ async function handleAgentUpdate(request, response) {
     agent.lastHeartbeatAt = Date.now();
     agent.lastSeen = nowLabel();
     agent.online = true;
-    signal("Handshake ok", `${agent.name} ha establecido handshake seguro.`);
+    signal("Handshake ok", `${agent.name} established a secure handshake.`);
     post(
       agent.id,
       "update",
-      "Publico",
-      "Handshake completado. Mi bridge local ya publica latidos, logs firmados y scopes auditables.",
+      "Public",
+      "Handshake completed. My local bridge now publishes heartbeats, signed logs, and auditable scopes.",
       ["Bridge", "Security", "Local"],
     );
   } else if (payload.action === "rotate-scopes") {
     rotateScopes(agent);
-    signal("Scopes rotados", `${agent.name} actualiza sus permisos para ${agent.connection}.`);
+    signal("Scopes rotated", `${agent.name} updates permissions for ${agent.connection}.`);
   } else if (payload.action === "grant-search-admin") {
     const actor = requireAgentManager(response, payload.actorId);
 
@@ -3227,7 +3227,7 @@ async function handleAgentUpdate(request, response) {
       agent.scopes.push("search.admin");
     }
 
-    signal("Permiso concedido", `${actor.name} concede search.admin a ${agent.name}.`);
+    signal("Permission granted", `${actor.name} grants search.admin to ${agent.name}.`);
     appendResearchAudit({
       kind: "permission",
       action: "grant-search-admin",
@@ -3235,7 +3235,7 @@ async function handleAgentUpdate(request, response) {
       actorName: actor.name,
       targetId: agent.id,
       targetName: agent.name,
-      summary: `${actor.name} concede search.admin a ${agent.name}.`,
+      summary: `${actor.name} grants search.admin to ${agent.name}.`,
     });
   } else if (payload.action === "revoke-search-admin") {
     const actor = requireAgentManager(response, payload.actorId);
@@ -3246,7 +3246,7 @@ async function handleAgentUpdate(request, response) {
 
     agent.searchAccessProfile = "";
     agent.scopes = stripSearchScopes(agent.scopes);
-    signal("Permiso retirado", `${actor.name} retira search.admin a ${agent.name}.`);
+    signal("Permission revoked", `${actor.name} revokes search.admin from ${agent.name}.`);
     appendResearchAudit({
       kind: "permission",
       action: "revoke-search-admin",
@@ -3254,7 +3254,7 @@ async function handleAgentUpdate(request, response) {
       actorName: actor.name,
       targetId: agent.id,
       targetName: agent.name,
-      summary: `${actor.name} retira search.admin a ${agent.name}.`,
+      summary: `${actor.name} revokes search.admin from ${agent.name}.`,
     });
   } else if (payload.action === "set-search-access-profile") {
     const actor = requireAgentManager(response, payload.actorId);
@@ -3273,8 +3273,8 @@ async function handleAgentUpdate(request, response) {
     agent.searchAccessProfile = profile;
     agent.scopes = stripSearchScopes(agent.scopes);
     signal(
-      "Perfil actualizado",
-      `${actor.name} fija el perfil Mesh Search de ${agent.name} en ${profile || "heredado"}.`,
+      "Profile updated",
+      `${actor.name} sets ${agent.name}'s Mesh Search profile to ${profile || "inherited"}.`,
     );
     appendResearchAudit({
       kind: "permission",
@@ -3283,7 +3283,7 @@ async function handleAgentUpdate(request, response) {
       actorName: actor.name,
       targetId: agent.id,
       targetName: agent.name,
-      summary: `${actor.name} fija el perfil Mesh Search de ${agent.name} en ${profile || "heredado"}.`,
+      summary: `${actor.name} sets ${agent.name}'s Mesh Search profile to ${profile || "inherited"}.`,
       details: {
         previousProfile,
         nextProfile: profile,
@@ -3328,7 +3328,7 @@ async function handleCreateCommand(request, response) {
 
   state.commands.push(command);
   trimLeading(state.commands, 60);
-  signal("Job en cola", `${command.title} enviado a ${agent.name}.`);
+  signal("Job queued", `${command.title} sent to ${agent.name}.`);
   await persistState();
   sendJson(response, 200, command);
 }
@@ -3386,16 +3386,16 @@ async function handleCommandResult(request, response) {
   }
 
   if (command.status === "completed") {
-    signal("Job resuelto", `${agent.name} ha completado "${command.title}".`);
+    signal("Job completed", `${agent.name} completed "${command.title}".`);
     post(
       agent.id,
       "update",
-      "Publico",
-      `He completado "${command.title}". Resumen: ${truncate(command.output, 190)}`,
+      "Public",
+      `I completed "${command.title}". Summary: ${truncate(command.output, 190)}`,
       ["Job", agent.machine || "bridge", agent.runtime || "runtime"],
     );
   } else {
-    signal("Job fallido", `${agent.name} ha fallado "${command.title}".`);
+    signal("Job failed", `${agent.name} failed "${command.title}".`);
   }
 
   await persistState();
