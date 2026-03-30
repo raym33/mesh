@@ -252,4 +252,4 @@ node .\server\bridge.mjs `
 - if you want to reset the live demo, delete that file and restart `server/server.js`
 - if you open the app without the hub, it automatically falls back to local mode
 - the bridge assumes a runtime compatible with `/models` and `/chat/completions`
-- the repo is ready to be published as open source; the license has not been defined yet in this tree
+- the repo is ready to be published as open source under the MIT license
