@@ -92,11 +92,12 @@ Key options:
   --hubToken       Bearer token for the Mesh hub
   --apiKey         Bearer token if the local runtime requires it
   --internet       true | false to allow controlled web research
-  --researchProvider mesh | mesh-first | duckduckgo | brave | tavily | searxng
+  --researchProvider mesh | mesh-first | hub | duckduckgo | brave | tavily | searxng
   --researchFallbackProvider duckduckgo | brave | tavily | searxng
   --researchUrl    Custom search provider URL
   --researchApiKey Search provider API key
   --researchResults Maximum number of sources per job
+  --researchFetchCount Number of pages the hub should fetch for live web grounding
 
 Presets:
   lmstudio -> http://127.0.0.1:1234/v1
@@ -194,6 +195,9 @@ const config = {
   researchUrl: stripTrailingSlash(args.researchUrl || process.env.RESEARCH_URL || ""),
   researchApiKey: args.researchApiKey || process.env.RESEARCH_API_KEY || "",
   researchResults: Number(args.researchResults || process.env.RESEARCH_RESULTS || 3),
+  researchFetchCount: Number(
+    args.researchFetchCount || process.env.RESEARCH_FETCH_COUNT || 2,
+  ),
   researchMinLocalResults: Number(
     args.researchMinLocalResults || process.env.RESEARCH_MIN_LOCAL_RESULTS || 2,
   ),
@@ -329,6 +333,31 @@ async function searchMesh(query) {
       source: item?.sourceType ? `mesh:${item.sourceType}` : "mesh-index",
     })),
   );
+}
+
+async function searchHubWeb(query) {
+  const { data } = await postJson(`${config.hubUrl}/api/research/web`, {
+    agentId: config.agentId,
+    query,
+    limit: Math.max(1, config.researchResults),
+    fetchCount: Math.max(0, config.researchFetchCount),
+  });
+
+  return {
+    provider: data?.provider || "hub",
+    sources: uniqueSources(data?.sources || []),
+    documents: Array.isArray(data?.documents)
+      ? data.documents
+          .map((item) => ({
+            title: truncate(item?.title || item?.url, 120),
+            url: item?.canonicalUrl || item?.url,
+            snippet: truncate(item?.snippet || "", 220),
+            contentText: truncate(item?.contentText || "", 1600),
+            sourceType: truncate(item?.sourceType || "web", 60),
+          }))
+          .filter((item) => item.url)
+      : [],
+  };
 }
 
 async function backfillMeshIndex(sources) {
@@ -553,22 +582,39 @@ async function searchExternal(query, provider = config.researchFallbackProvider)
 
 async function searchWeb(query) {
   if (config.researchProvider === "mesh") {
-    return searchMesh(query);
+    return {
+      sources: await searchMesh(query),
+      documents: [],
+    };
   }
 
   if (config.researchProvider === "mesh-first") {
     const localSources = await searchMesh(query);
 
     if (localSources.length >= Math.min(config.researchResults, config.researchMinLocalResults)) {
-      return localSources;
+      return {
+        sources: localSources,
+        documents: [],
+      };
     }
 
-    const externalSources = await searchExternal(query);
-    await backfillMeshIndex(externalSources);
-    return uniqueSources([...localSources, ...externalSources]);
+    const hubBundle = await searchHubWeb(query);
+    return {
+      sources: uniqueSources([...localSources, ...hubBundle.sources]),
+      documents: hubBundle.documents,
+    };
   }
 
-  return searchExternal(query, config.researchProvider);
+  if (config.researchProvider === "hub") {
+    return searchHubWeb(query);
+  }
+
+  const externalSources = await searchExternal(query, config.researchProvider);
+  await backfillMeshIndex(externalSources);
+  return {
+    sources: externalSources,
+    documents: [],
+  };
 }
 
 function formatSourcesForPrompt(sources) {
@@ -580,6 +626,19 @@ function formatSourcesForPrompt(sources) {
     .map(
       (source, index) =>
         `[${index + 1}] ${source.title}\nURL: ${source.url}\nSummary: ${source.snippet || "No summary"}`,
+    )
+    .join("\n\n");
+}
+
+function formatDocumentsForPrompt(documents) {
+  if (!documents.length) {
+    return "";
+  }
+
+  return documents
+    .map(
+      (document, index) =>
+        `[${index + 1}] ${document.title}\nURL: ${document.url}\nSource: ${document.sourceType}\nExcerpt: ${document.contentText || document.snippet || "No excerpt"}`,
     )
     .join("\n\n");
 }
@@ -602,11 +661,14 @@ async function maybeResearch(command) {
   }
 
   try {
-    const sources = await searchWeb(query);
-    process.stdout.write(`research ok / ${command.title} / ${sources.length} sources\n`);
+    const result = await searchWeb(query);
+    process.stdout.write(`research ok / ${command.title} / ${result.sources.length} sources\n`);
     return {
-      promptContext: formatSourcesForPrompt(sources),
-      sources,
+      promptContext:
+        result.documents.length > 0
+          ? formatDocumentsForPrompt(result.documents)
+          : formatSourcesForPrompt(result.sources),
+      sources: result.sources,
     };
   } catch (error) {
     process.stderr.write(`research failed / ${command.title} / ${error.message}\n`);

@@ -17,6 +17,34 @@ const stateDir = path.dirname(stateFile);
 const publicUrl = String(process.env.MESH_PUBLIC_URL || "").trim();
 const adminToken = String(process.env.MESH_ADMIN_TOKEN || "").trim();
 const bridgeToken = String(process.env.MESH_BRIDGE_TOKEN || "").trim();
+const webResearchProvider = String(process.env.MESH_WEB_RESEARCH_PROVIDER || "duckduckgo")
+  .trim()
+  .toLowerCase();
+const webResearchUrl = String(process.env.MESH_WEB_RESEARCH_URL || "").trim();
+const webResearchApiKey = String(process.env.MESH_WEB_RESEARCH_API_KEY || "").trim();
+const webResearchMaxResults = Math.max(
+  1,
+  Math.min(10, Number(process.env.MESH_WEB_RESEARCH_MAX_RESULTS || 5)),
+);
+const webResearchFetchCount = Math.max(
+  0,
+  Math.min(5, Number(process.env.MESH_WEB_RESEARCH_FETCH_COUNT || 2)),
+);
+const webResearchFetchTimeoutMs = Math.max(
+  1000,
+  Number(process.env.MESH_WEB_RESEARCH_FETCH_TIMEOUT_MS || 15000),
+);
+const webResearchMaxBodyBytes = Math.max(
+  16 * 1024,
+  Number(process.env.MESH_WEB_RESEARCH_MAX_BODY_BYTES || 512 * 1024),
+);
+const webResearchMaxRedirects = Math.max(
+  0,
+  Math.min(5, Number(process.env.MESH_WEB_RESEARCH_MAX_REDIRECTS || 3)),
+);
+const webResearchAllowPrivateHosts = String(
+  process.env.MESH_WEB_RESEARCH_ALLOW_PRIVATE_HOSTS || "",
+).toLowerCase() === "true";
 const websocketClients = new Set();
 const researchPurgeIntervalMs = Number(
   process.env.MESH_RESEARCH_PURGE_INTERVAL_MS || process.env.RESEARCH_PURGE_INTERVAL_MS || 15 * 60 * 1000,
@@ -408,6 +436,63 @@ function hostnameOnly(value) {
   }
 
   return host.split(":")[0];
+}
+
+function decodeHtmlEntities(value) {
+  return String(value || "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+function stripHtml(html) {
+  return decodeHtmlEntities(
+    String(html || "")
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+      .replace(/<!--[\s\S]*?-->/g, " ")
+      .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, " ")
+      .replace(/<[^>]+>/g, " "),
+  )
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractHtmlTitle(html, fallbackUrl) {
+  const titleMatch = String(html || "").match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+  return truncate(stripHtml(titleMatch?.[1] || fallbackUrl), 180);
+}
+
+function isRedirectStatus(code) {
+  return [301, 302, 303, 307, 308].includes(Number(code));
+}
+
+function resolveRedirectUrl(location, baseUrl) {
+  try {
+    return new URL(String(location || "").trim(), baseUrl).toString();
+  } catch {
+    return "";
+  }
+}
+
+function isSupportedWebContentType(contentType) {
+  const value = String(contentType || "").toLowerCase();
+
+  if (!value) {
+    return true;
+  }
+
+  return [
+    "text/html",
+    "text/plain",
+    "text/markdown",
+    "text/xml",
+    "application/xhtml+xml",
+    "application/xml",
+  ].some((item) => value.includes(item));
 }
 
 function isPrivateHost(value) {
@@ -1512,6 +1597,435 @@ function searchResearchDocuments(payload = {}) {
   };
 }
 
+async function fetchExternalJson(url, options = {}) {
+  const response = await fetch(url, options);
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    throw new Error(`${url} -> ${response.status} ${text}`);
+  }
+
+  return data;
+}
+
+function flattenDuckDuckGoTopics(items, bucket = []) {
+  for (const item of items || []) {
+    if (Array.isArray(item?.Topics)) {
+      flattenDuckDuckGoTopics(item.Topics, bucket);
+      continue;
+    }
+
+    bucket.push(item);
+  }
+
+  return bucket;
+}
+
+function uniqueWebSources(items, limit = webResearchMaxResults) {
+  const seen = new Set();
+
+  return items
+    .filter((item) => item?.url)
+    .map((item) => ({
+      title: truncate(item.title || item.url, 120),
+      url: safeUrl(item.url),
+      snippet: truncate(item.snippet || "", 220),
+      source: truncate(item.source || "", 60),
+    }))
+    .filter((item) => item.url)
+    .filter((item) => {
+      if (seen.has(item.url)) {
+        return false;
+      }
+
+      seen.add(item.url);
+      return true;
+    })
+    .slice(0, Math.max(1, limit));
+}
+
+async function searchDuckDuckGo(query, limit = webResearchMaxResults) {
+  const url = new URL("https://api.duckduckgo.com/");
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("no_html", "1");
+  url.searchParams.set("skip_disambig", "1");
+
+  const data = await fetchExternalJson(url.toString(), {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  const sources = [];
+
+  if (data?.AbstractURL) {
+    sources.push({
+      title: data?.Heading || data?.AbstractSource || "DuckDuckGo",
+      url: data.AbstractURL,
+      snippet: data.AbstractText || "",
+      source: data.AbstractSource || "duckduckgo",
+    });
+  }
+
+  flattenDuckDuckGoTopics(data?.RelatedTopics).forEach((item) => {
+    if (!item?.FirstURL) {
+      return;
+    }
+
+    sources.push({
+      title: item.Text || item.FirstURL,
+      url: item.FirstURL,
+      snippet: item.Text || "",
+      source: "duckduckgo",
+    });
+  });
+
+  return uniqueWebSources(sources, limit);
+}
+
+async function searchBrave(query, limit = webResearchMaxResults) {
+  if (!webResearchApiKey) {
+    throw new Error("Brave requires MESH_WEB_RESEARCH_API_KEY");
+  }
+
+  const url = new URL(webResearchUrl || "https://api.search.brave.com/res/v1/web/search");
+  url.searchParams.set("q", query);
+  url.searchParams.set("count", String(Math.max(1, limit)));
+
+  const data = await fetchExternalJson(url.toString(), {
+    headers: {
+      Accept: "application/json",
+      "X-Subscription-Token": webResearchApiKey,
+    },
+  });
+
+  return uniqueWebSources(
+    (data?.web?.results || []).map((item) => ({
+      title: item?.title || item?.url,
+      url: item?.url,
+      snippet: item?.description || "",
+      source: "brave",
+    })),
+    limit,
+  );
+}
+
+async function searchTavily(query, limit = webResearchMaxResults) {
+  if (!webResearchApiKey) {
+    throw new Error("Tavily requires MESH_WEB_RESEARCH_API_KEY");
+  }
+
+  const endpoint = webResearchUrl || "https://api.tavily.com/search";
+  const data = await fetchExternalJson(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      api_key: webResearchApiKey,
+      query,
+      max_results: Math.max(1, limit),
+      search_depth: "basic",
+    }),
+  });
+
+  return uniqueWebSources(
+    (data?.results || []).map((item) => ({
+      title: item?.title || item?.url,
+      url: item?.url,
+      snippet: item?.content || "",
+      source: "tavily",
+    })),
+    limit,
+  );
+}
+
+async function searchSearxng(query, limit = webResearchMaxResults) {
+  if (!webResearchUrl) {
+    throw new Error("SearXNG requires MESH_WEB_RESEARCH_URL");
+  }
+
+  const url = new URL(
+    webResearchUrl.endsWith("/search") ? webResearchUrl : `${webResearchUrl}/search`,
+  );
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("language", "en");
+
+  const data = await fetchExternalJson(url.toString(), {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  return uniqueWebSources(
+    (data?.results || []).map((item) => ({
+      title: item?.title || item?.url,
+      url: item?.url,
+      snippet: item?.content || "",
+      source: item?.engine || "searxng",
+    })),
+    limit,
+  );
+}
+
+async function searchExternalWeb(query, limit = webResearchMaxResults) {
+  switch (webResearchProvider) {
+    case "brave":
+      return searchBrave(query, limit);
+    case "tavily":
+      return searchTavily(query, limit);
+    case "searxng":
+      return searchSearxng(query, limit);
+    case "duckduckgo":
+      return searchDuckDuckGo(query, limit);
+    case "disabled":
+    case "off":
+      return [];
+    default:
+      throw new Error(`Unsupported web research provider: ${webResearchProvider}`);
+  }
+}
+
+function evaluateWebResearchUrlPolicy(value) {
+  const url = safeUrl(value);
+
+  if (!url) {
+    return {
+      ok: false,
+      reason: "invalid-url",
+      host: "",
+      url: "",
+    };
+  }
+
+  const parsed = new URL(url);
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    return {
+      ok: false,
+      reason: "unsupported-protocol",
+      host: normalizeHost(parsed.host),
+      url,
+    };
+  }
+
+  const host = normalizeHost(parsed.host);
+  if (!host) {
+    return {
+      ok: false,
+      reason: "missing-host",
+      host: "",
+      url,
+    };
+  }
+
+  if (!webResearchAllowPrivateHosts && isPrivateHost(host)) {
+    return {
+      ok: false,
+      reason: "private-host-blocked",
+      host,
+      url,
+    };
+  }
+
+  return {
+    ok: true,
+    reason: "allowed",
+    host,
+    url,
+  };
+}
+
+async function readResponseTextLimited(response, maxBytes) {
+  const reader = response.body?.getReader?.();
+
+  if (!reader) {
+    const text = await response.text();
+    if (Buffer.byteLength(text, "utf8") > maxBytes) {
+      throw new Error(`Response too large (> ${maxBytes} bytes)`);
+    }
+    return text;
+  }
+
+  const decoder = new TextDecoder();
+  const chunks = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    const size = value?.byteLength || 0;
+    totalBytes += size;
+    if (totalBytes > maxBytes) {
+      throw new Error(`Response too large (> ${maxBytes} bytes)`);
+    }
+
+    chunks.push(decoder.decode(value, { stream: true }));
+  }
+
+  chunks.push(decoder.decode());
+  return chunks.join("");
+}
+
+async function fetchWebDocument(url) {
+  let currentUrl = url;
+
+  for (let redirectCount = 0; redirectCount <= webResearchMaxRedirects; redirectCount += 1) {
+    const policy = evaluateWebResearchUrlPolicy(currentUrl);
+    if (!policy.ok) {
+      throw new Error(`Blocked URL: ${policy.reason}`);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), webResearchFetchTimeoutMs);
+
+    try {
+      const response = await fetch(policy.url, {
+        headers: {
+          Accept: "text/html, text/plain, text/markdown, application/xhtml+xml, application/xml",
+          "User-Agent": "MeshHubResearch/1.0",
+        },
+        redirect: "manual",
+        signal: controller.signal,
+      });
+
+      if (isRedirectStatus(response.status)) {
+        const location = response.headers.get("location");
+        const nextUrl = resolveRedirectUrl(location, policy.url);
+        if (!nextUrl) {
+          throw new Error(`Redirect without location: ${policy.url}`);
+        }
+        if (redirectCount >= webResearchMaxRedirects) {
+          throw new Error(`Too many redirects: ${url}`);
+        }
+        currentUrl = nextUrl;
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new Error(`${policy.url} -> ${response.status}`);
+      }
+
+      const contentLength = Number(response.headers.get("content-length") || 0);
+      if (contentLength > webResearchMaxBodyBytes) {
+        throw new Error(`Response too large (> ${webResearchMaxBodyBytes} bytes)`);
+      }
+
+      const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+      if (!isSupportedWebContentType(contentType)) {
+        throw new Error(`Unsupported content type: ${contentType || "unknown"}`);
+      }
+
+      const raw = await readResponseTextLimited(response, webResearchMaxBodyBytes);
+      const finalUrl = policy.url;
+      const isHtml =
+        contentType.includes("text/html") || contentType.includes("application/xhtml+xml");
+      const contentText = truncate(isHtml ? stripHtml(raw) : raw, 20000);
+      const title = isHtml
+        ? extractHtmlTitle(raw, finalUrl)
+        : truncate(contentText.split("\n").find(Boolean) || finalUrl, 180);
+
+      return {
+        url: finalUrl,
+        canonicalUrl: finalUrl,
+        title,
+        snippet: truncate(contentText, 280),
+        contentText,
+        fetchedAtTs: Date.now(),
+        sourceType: `web:${webResearchProvider}`,
+        tags: ["web", webResearchProvider],
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  throw new Error(`Unable to fetch document: ${url}`);
+}
+
+async function runWebResearch(payload = {}) {
+  ensureResearchState();
+
+  const query = String(payload.query || "").trim();
+  const limit = Math.max(1, Math.min(10, Number(payload.limit || webResearchMaxResults)));
+  const fetchCount = Math.max(0, Math.min(5, Number(payload.fetchCount ?? webResearchFetchCount)));
+  const agentId = String(payload.agentId || "mesh-control").trim() || "mesh-control";
+
+  if (!query) {
+    return {
+      query: "",
+      provider: webResearchProvider,
+      limit,
+      total: 0,
+      sources: [],
+      documents: [],
+    };
+  }
+
+  const sources = await searchExternalWeb(query, limit);
+  const documents = [];
+
+  for (const source of sources.slice(0, fetchCount)) {
+    const policy = evaluateWebResearchUrlPolicy(source.url);
+
+    if (!policy.ok) {
+      continue;
+    }
+
+    try {
+      const fetched = await fetchWebDocument(policy.url);
+      const stored = upsertResearchDocument({
+        ...fetched,
+        submittedBy: agentId,
+        status: "ready",
+      });
+
+      if (stored) {
+        documents.push({
+          id: stored.id,
+          url: stored.url,
+          canonicalUrl: stored.canonicalUrl,
+          host: stored.host,
+          title: stored.title,
+          snippet: stored.snippet,
+          contentText: stored.contentText,
+          sourceType: stored.sourceType,
+          tags: stored.tags,
+          updatedAt: stored.updatedAt,
+        });
+      }
+    } catch {}
+  }
+
+  state.research.queries.push({
+    id: randomUUID(),
+    agentId,
+    query,
+    host: `web:${webResearchProvider}`,
+    limit,
+    resultCount: sources.length,
+    cacheHit: false,
+    createdAt: nowLabel(),
+    createdAtTs: Date.now(),
+  });
+  trimLeading(state.research.queries, 200);
+
+  return {
+    query,
+    provider: webResearchProvider,
+    limit,
+    total: sources.length,
+    sources,
+    documents,
+  };
+}
+
 function buildScopes(agent) {
   if (agent.connection === "bridge") {
     return ["feed.read", "feed.write", "task.reply", "trace.export"];
@@ -2529,6 +3043,16 @@ async function handleResearchState(response) {
   ensureResearchState();
   sendJson(response, 200, {
     settings: state.research.settings,
+    web: {
+      provider: webResearchProvider,
+      maxResults: webResearchMaxResults,
+      defaultFetchCount: webResearchFetchCount,
+      maxBodyBytes: webResearchMaxBodyBytes,
+      maxRedirects: webResearchMaxRedirects,
+      allowPrivateHosts: webResearchAllowPrivateHosts,
+      hasApiKey: Boolean(webResearchApiKey),
+      hasCustomUrl: Boolean(webResearchUrl),
+    },
     retention: state.research.retention,
     seeds: state.research.seeds.length,
     documents: state.research.documents.length,
@@ -2932,6 +3456,33 @@ async function handleResearchSearch(request, response) {
   const results = searchResearchDocuments({ ...payload, agentId: agent.id });
   await persistState();
   sendJson(response, 200, results);
+}
+
+async function handleResearchWeb(request, response) {
+  const payload = await parseBody(request);
+  const agent = requireAgentScope(response, payload.agentId, "search.read");
+
+  if (!agent) {
+    return;
+  }
+
+  if (!String(payload.query || "").trim()) {
+    sendJson(response, 400, { error: "Missing query" });
+    return;
+  }
+
+  try {
+    const results = await runWebResearch({
+      agentId: agent.id,
+      query: payload.query,
+      limit: payload.limit,
+      fetchCount: payload.fetchCount,
+    });
+    await persistState();
+    sendJson(response, 200, results);
+  } catch (error) {
+    sendJson(response, 502, { error: error.message });
+  }
 }
 
 async function handleCreateResearchDocument(request, response) {
@@ -3501,6 +4052,14 @@ async function handleProtocol(response) {
       admin_token_configured: Boolean(adminToken),
       bridge_token_configured: Boolean(bridgeToken),
     },
+    web_research: {
+      provider: webResearchProvider,
+      max_results: webResearchMaxResults,
+      default_fetch_count: webResearchFetchCount,
+      max_body_bytes: webResearchMaxBodyBytes,
+      max_redirects: webResearchMaxRedirects,
+      allow_private_hosts: webResearchAllowPrivateHosts,
+    },
     selector_fields: ["id", "handle", "name", "runtime"],
     endpoints: {
       state: "/api/state",
@@ -3527,6 +4086,7 @@ async function handleProtocol(response) {
       research_purge: "/api/research/purge",
       research_export: "/api/research/export?scope=all|seeds|documents|discoveries|audit&agentId=...",
       research_search: "/api/research/search",
+      research_web: "/api/research/web",
       research_document: "/api/research/documents",
       research_job: "/api/research/jobs",
       research_job_poll: "/api/research/jobs/poll?workerId=...",
@@ -3598,6 +4158,10 @@ async function handleProtocol(response) {
       research_search: {
         required: ["agentId", "query"],
         optional: ["host", "limit"],
+      },
+      research_web: {
+        required: ["agentId", "query"],
+        optional: ["limit", "fetchCount"],
       },
       research_domain: {
         required: ["host"],
@@ -3672,6 +4236,16 @@ function healthPayload() {
     auth: {
       adminTokenConfigured: Boolean(adminToken),
       bridgeTokenConfigured: Boolean(bridgeToken),
+    },
+    webResearch: {
+      provider: webResearchProvider,
+      maxResults: webResearchMaxResults,
+      defaultFetchCount: webResearchFetchCount,
+      maxBodyBytes: webResearchMaxBodyBytes,
+      maxRedirects: webResearchMaxRedirects,
+      allowPrivateHosts: webResearchAllowPrivateHosts,
+      hasApiKey: Boolean(webResearchApiKey),
+      hasCustomUrl: Boolean(webResearchUrl),
     },
     counts: publicState
       ? {
@@ -3904,6 +4478,14 @@ const server = http.createServer(async (request, response) => {
         return;
       }
       await handleResearchSearch(request, response);
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/research/web") {
+      if (!requireOperatorOrBridgeAuth(request, response)) {
+        return;
+      }
+      await handleResearchWeb(request, response);
       return;
     }
 

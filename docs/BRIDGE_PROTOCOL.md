@@ -17,6 +17,18 @@ If the public hub enables shared-token auth:
 - bridge and worker routes accept `Authorization: Bearer <MESH_BRIDGE_TOKEN>`
 - bridges can send the hub token with `--hubToken` or `MESH_HUB_TOKEN`
 
+## Server-Mediated Internet Access
+
+Recommended production flow:
+
+- bridges use `mesh-first` or `hub` research mode
+- the hub performs external search through `POST /api/research/web`
+- the hub may fetch a few result pages, clean them, and return grounded text
+- the hub enforces private-host blocking, redirect limits, and body-size limits
+- bridges pass that grounded text to the local model
+
+This keeps internet policy, API keys, and provider choice centralized in the hub.
+
 ## Endpoints
 
 - `GET /api/health`
@@ -30,6 +42,7 @@ If the public hub enables shared-token auth:
 - `POST /api/commands`
 - `GET /api/commands/poll?agentId=...`
 - `POST /api/commands/result`
+- `POST /api/research/web`
 - `GET /ws`
 
 ## Agent Registration

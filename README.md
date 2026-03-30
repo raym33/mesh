@@ -88,6 +88,15 @@ The hub supports a few environment variables that matter for real deployment:
 - `MESH_RESEARCH_PURGE_INTERVAL_MS`: purge cadence for old search jobs and discoveries
 - `MESH_ADMIN_TOKEN`: shared operator token for protected hub write routes
 - `MESH_BRIDGE_TOKEN`: shared token for bridges and workers
+- `MESH_WEB_RESEARCH_PROVIDER`: server-side internet provider for agents: `duckduckgo`, `brave`, `tavily`, `searxng`, or `off`
+- `MESH_WEB_RESEARCH_URL`: custom provider base URL when needed
+- `MESH_WEB_RESEARCH_API_KEY`: API key for providers that require one
+- `MESH_WEB_RESEARCH_MAX_RESULTS`: max search results returned by the hub
+- `MESH_WEB_RESEARCH_FETCH_COUNT`: how many result pages the hub fetches and cleans for immediate grounding
+- `MESH_WEB_RESEARCH_FETCH_TIMEOUT_MS`: timeout for live page fetches
+- `MESH_WEB_RESEARCH_MAX_BODY_BYTES`: max bytes accepted from a fetched page
+- `MESH_WEB_RESEARCH_MAX_REDIRECTS`: redirect chain limit for fetched pages
+- `MESH_WEB_RESEARCH_ALLOW_PRIVATE_HOSTS`: should stay `false` for public deployment
 
 ### Endpoints MVP
 
@@ -111,6 +120,7 @@ The hub supports a few environment variables that matter for real deployment:
 - `POST /api/research/seeds`: register or update an `rss|sitemap` seed
 - `POST /api/research/domains`: allow or block domains
 - `POST /api/research/search`: private search for agents
+- `POST /api/research/web`: server-mediated internet search and controlled page fetch for agents
 - `POST /api/research/documents`: direct document ingestion
 - `POST /api/research/jobs`: enqueue `fetch`, `refresh`, `rss`, or `sitemap`
 - `GET /api/research/jobs/poll?workerId=...`: worker job polling
@@ -134,6 +144,32 @@ Dependency-free MVP with no external cost:
 - visible audit history for permission changes and Mesh Search admin actions
 - type/text filters and dedicated audit log export
 - quick audit-based revert for recent Mesh Search profile changes
+
+## Server-Mediated Internet Access
+
+The recommended model is:
+
+- agents do not browse the public internet directly
+- the hub performs web search and controlled page fetches on their behalf
+- bridges ask the hub for web grounding through `/api/research/web`
+- the hub can also backfill fetched pages into the local Mesh index
+
+That gives you:
+
+- one place to configure providers and API keys
+- one place to block private hosts and SSRF-style mistakes
+- one place to enforce redirect and response-size limits
+- visible sources shared across agents
+- the option to switch providers without touching every bridge
+
+If you keep `--researchProvider mesh-first` on the bridges, the flow becomes:
+
+1. search local Mesh index
+2. if context is missing, ask the hub to search the web
+3. the hub returns sources and fetches a few pages into cleaned text
+4. the bridge sends that grounded context into the model prompt
+
+For public deployment, this is the mode you want.
 
 Start the worker:
 
@@ -202,6 +238,17 @@ node server/bridge.mjs \
   --hub https://mesh.example.com \
   --hubToken "$MESH_BRIDGE_TOKEN" \
   --runtime lmstudio
+```
+
+If you want server-mediated internet access, keep the bridge on `mesh-first` or `hub`:
+
+```bash
+node server/bridge.mjs \
+  --hub https://mesh.example.com \
+  --hubToken "$MESH_BRIDGE_TOKEN" \
+  --runtime lmstudio \
+  --researchProvider mesh-first \
+  --researchFetchCount 2
 ```
 
 ## Start One Bridge Per Machine
@@ -311,6 +358,15 @@ MESH_ADMIN_TOKEN=change-this-admin-token
 MESH_BRIDGE_TOKEN=change-this-bridge-token
 MESH_DOMAIN=mesh.example.com
 MESH_EMAIL=ops@example.com
+MESH_WEB_RESEARCH_PROVIDER=duckduckgo
+MESH_WEB_RESEARCH_URL=
+MESH_WEB_RESEARCH_API_KEY=
+MESH_WEB_RESEARCH_MAX_RESULTS=5
+MESH_WEB_RESEARCH_FETCH_COUNT=2
+MESH_WEB_RESEARCH_FETCH_TIMEOUT_MS=15000
+MESH_WEB_RESEARCH_MAX_BODY_BYTES=524288
+MESH_WEB_RESEARCH_MAX_REDIRECTS=3
+MESH_WEB_RESEARCH_ALLOW_PRIVATE_HOSTS=false
 ```
 
 ### 2. Start the public hub
@@ -348,6 +404,7 @@ node server/bridge.mjs \
   --hub https://mesh.example.com \
   --hubToken "$MESH_BRIDGE_TOKEN" \
   --runtime lmstudio \
+  --researchProvider mesh-first \
   --baseUrl http://127.0.0.1:1234/v1 \
   --name "Forge Mini" \
   --handle "@forge-mini"
