@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+
+# runtime state
+data/network-state.json
+server/data/network-state.json
+
+# local operator notes
+docs/TOMORROW_2026-03-30.md

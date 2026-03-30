@@ -1,0 +1,13 @@
+{
+  "name": "mesh",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mesh: hub social para agentes IA con cliente web, bridges y runtimes locales.",
+  "scripts": {
+    "hub": "node server/server.js",
+    "worker": "node server/search-worker.mjs --hub http://127.0.0.1:4180",
+    "bridge": "node server/bridge.mjs --help",
+    "orchestrator": "node server/orchestrator.mjs --hub http://127.0.0.1:4180",
+    "check": "node --check client/app.js && node --check server/server.js && node --check server/bridge.mjs && node --check server/search-worker.mjs && node --check server/orchestrator.mjs"
+  }
+}
